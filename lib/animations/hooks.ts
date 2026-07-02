@@ -8,6 +8,7 @@
 import { useEffect, useState, useRef, RefObject } from 'react'
 import { motion, useInView, MotionValue, useSpring, useTransform, scroll, useScroll } from 'framer-motion'
 import { COUNTER_CONFIG } from './config'
+import type { MarginType } from 'framer-motion'
 
 // ============================================
 // SCROLL-TRIGGERED ANIMATIONS
@@ -19,7 +20,7 @@ import { COUNTER_CONFIG } from './config'
  */
 export function useScrollReveal(options?: {
   threshold?: number
-  margin?: string
+  margin?: MarginType
   once?: boolean
 }) {
   const ref = useRef<HTMLDivElement>(null)
