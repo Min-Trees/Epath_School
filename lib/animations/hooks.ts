@@ -8,7 +8,6 @@
 import { useEffect, useState, useRef, RefObject } from 'react'
 import { motion, useInView, MotionValue, useSpring, useTransform, scroll, useScroll } from 'framer-motion'
 import { COUNTER_CONFIG } from './config'
-import type { MarginType } from 'framer-motion'
 
 // ============================================
 // SCROLL-TRIGGERED ANIMATIONS
@@ -20,13 +19,13 @@ import type { MarginType } from 'framer-motion'
  */
 export function useScrollReveal(options?: {
   threshold?: number
-  margin?: MarginType
+  margin?: string
   once?: boolean
 }) {
   const ref = useRef<HTMLDivElement>(null)
   const isInView = useInView(ref, {
     once: options?.once ?? true,
-    margin: options?.margin ?? '-50px',
+    margin: options?.margin ?? ('-50px' as const),
     amount: options?.threshold ?? 0.2,
   })
 
@@ -38,7 +37,7 @@ export function useScrollReveal(options?: {
  */
 export function useStaggerContainer(itemCount: number, delay: number = 0.08) {
   const ref = useRef<HTMLDivElement>(null)
-  const isInView = useInView(ref, { once: true, margin: '-50px' })
+  const isInView = useInView(ref, { once: true, margin: '-50px' as const })
 
   const childVariants = {
     hidden: { opacity: 0, y: 30 },
