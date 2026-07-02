@@ -1,0 +1,180 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* EPath Color System - 2026 */
+    /* Xanh dương chính (học thuật, tin cậy) */
+    --primary: 227 54% 52%;
+    --primary-foreground: 0 0% 100%;
+    /* Xanh lá (phát triển, năng lượng) */
+    --secondary: 76 57% 53%;
+    --secondary-foreground: 0 0% 0%;
+    /* Cam (sáng tạo, CTA) */
+    --accent: 14 79% 57%;
+    --accent-foreground: 0 0% 100%;
+    /* Nền */
+    --background: 0 0% 100%;
+    --foreground: 228 7% 14%;
+    /* Card */
+    --card: 0 0% 100%;
+    --card-foreground: 228 7% 14%;
+    /* Popover */
+    --popover: 0 0% 100%;
+    --popover-foreground: 228 7% 14%;
+    /* Muted */
+    --muted: 210 20% 96%;
+    --muted-foreground: 228 7% 40%;
+    /* Border & Input */
+    --border: 220 13% 85%;
+    --input: 220 13% 85%;
+    /* Ring */
+    --ring: 227 54% 52%;
+    /* Destructive */
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    /* Radius */
+    --radius: 0.5rem;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-white text-[#231F20];
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #F8F9FA;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #3A53A3;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #2E4389;
+}
+
+/* Smooth scroll */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Custom utilities */
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
+
+/* EPath Gradients */
+.primary-gradient {
+  background: linear-gradient(135deg, #3A53A3 0%, #2E4389 100%);
+}
+
+.green-gradient {
+  background: linear-gradient(135deg, #8BC53F 0%, #B7D333 100%);
+}
+
+.accent-gradient {
+  background: linear-gradient(135deg, #F05A28 0%, #F26A42 100%);
+}
+
+/* Brand gradient - Xanh dương chủ đạo với xanh lá accent */
+.brand-gradient {
+  background: linear-gradient(135deg, #3A53A3 0%, #8BC53F 100%);
+}
+
+/* Button styles */
+.btn-primary {
+  background-color: #F05A28;
+  transition: background-color 0.15s ease, transform 0.15s ease;
+}
+.btn-primary:hover {
+  background-color: #E04D1A;
+  transform: translateY(-1px);
+}
+
+/* Page transitions - Zero delay */
+.page-transition-enter {
+  animation: page-enter 0.2s ease-out forwards;
+}
+
+.page-transition-exit {
+  animation: page-exit 0.15s ease-out forwards;
+}
+
+@keyframes page-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes page-exit {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+/* Stagger animation for lists */
+.stagger-item {
+  opacity: 0;
+  animation: fade-in-up 0.3s ease-out forwards;
+}
+
+.stagger-item:nth-child(1) { animation-delay: 0ms; }
+.stagger-item:nth-child(2) { animation-delay: 50ms; }
+.stagger-item:nth-child(3) { animation-delay: 100ms; }
+.stagger-item:nth-child(4) { animation-delay: 150ms; }
+.stagger-item:nth-child(5) { animation-delay: 200ms; }
+.stagger-item:nth-child(6) { animation-delay: 250ms; }
+.stagger-item:nth-child(7) { animation-delay: 300ms; }
+.stagger-item:nth-child(8) { animation-delay: 350ms; }
+
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Language transition - Instant */
+.lang-transition {
+  transition: none !important;
+}
+
+/* Ensure instant language switch */
+* {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Prevent layout shift during navigation */
+.layout-stable {
+  contain: layout style;
+}
