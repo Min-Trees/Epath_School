@@ -6,8 +6,15 @@ import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
 import { Eye, EyeOff, LogIn, Lock, Mail } from 'lucide-react'
+import { semanticColors, radius } from '@/lib/design-tokens'
 
 export default function AdminLoginPage() {
   const [email, setEmail] = useState('')
@@ -24,7 +31,7 @@ export default function AdminLoginPage() {
 
     // Simulate Firebase Auth login
     // In production, use: signInWithEmailAndPassword(auth, email, password)
-    await new Promise(resolve => setTimeout(resolve, 1500))
+    await new Promise((resolve) => setTimeout(resolve, 1500))
 
     if (email === 'admin@epath.edu.vn' && password === 'admin123') {
       // Store auth state in localStorage for demo
@@ -37,8 +44,16 @@ export default function AdminLoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#3A53A3] via-[#3A53A3] to-[#2E4389] flex items-center justify-center p-4">
-      <Card className="w-full max-w-md">
+    <div
+      className="min-h-screen flex items-center justify-center p-4"
+      style={{
+        background: `linear-gradient(135deg, ${semanticColors.primary} 0%, ${semanticColors.primaryDark} 100%)`,
+      }}
+    >
+      <Card
+        className="w-full max-w-md"
+        style={{ borderRadius: radius['2xl'] }}
+      >
         <CardHeader className="text-center">
           <Image
             src="/epath_logo.png"
@@ -47,7 +62,12 @@ export default function AdminLoginPage() {
             height={60}
             className="h-14 w-auto mx-auto mb-4"
           />
-          <CardTitle className="text-xl text-[#6B6B6B] mt-2">Admin</CardTitle>
+          <CardTitle
+            className="text-xl mt-2"
+            style={{ color: semanticColors.textMuted }}
+          >
+            Admin
+          </CardTitle>
           <CardDescription>
             Đăng nhập để truy cập trang quản trị
           </CardDescription>
@@ -57,7 +77,10 @@ export default function AdminLoginPage() {
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[#6B6B6B]" />
+                <Mail
+                  className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5"
+                  style={{ color: semanticColors.textMuted }}
+                />
                 <Input
                   id="email"
                   type="email"
@@ -73,7 +96,10 @@ export default function AdminLoginPage() {
             <div className="space-y-2">
               <Label htmlFor="password">Mật khẩu</Label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[#6B6B6B]" />
+                <Lock
+                  className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5"
+                  style={{ color: semanticColors.textMuted }}
+                />
                 <Input
                   id="password"
                   type={showPassword ? 'text' : 'password'}
@@ -86,7 +112,9 @@ export default function AdminLoginPage() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[#6B6B6B] hover:text-[#3A53A3]"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 transition-colors duration-200"
+                  style={{ color: semanticColors.textMuted }}
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
                 >
                   {showPassword ? (
                     <EyeOff className="w-5 h-5" />
@@ -98,16 +126,18 @@ export default function AdminLoginPage() {
             </div>
 
             {error && (
-              <div className="text-red-500 text-sm text-center bg-red-50 p-2 rounded">
+              <div
+                className="text-sm text-center p-2 rounded"
+                style={{
+                  color: '#dc2626',
+                  backgroundColor: '#fef2f2',
+                }}
+              >
                 {error}
               </div>
             )}
 
-            <Button
-              type="submit"
-              className="w-full bg-[#3A53A3] hover:bg-[#2E4389]"
-              disabled={isLoading}
-            >
+            <Button type="submit" className="w-full" disabled={isLoading}>
               {isLoading ? (
                 'Đang đăng nhập...'
               ) : (
@@ -119,7 +149,10 @@ export default function AdminLoginPage() {
             </Button>
           </form>
 
-          <div className="mt-6 text-center text-sm text-[#6B6B6B]">
+          <div
+            className="mt-6 text-center text-sm"
+            style={{ color: semanticColors.textMuted }}
+          >
             <p>Demo credentials:</p>
             <p className="font-mono text-xs">admin@epath.edu.vn / admin123</p>
           </div>
