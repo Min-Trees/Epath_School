@@ -86,9 +86,9 @@ export function getSpring(
   stiffness: keyof typeof ANIMATION_EASE = 'spring',
   damping?: number
 ) {
-  const spring = ANIMATION_EASE[spring]
-  if (damping !== undefined && 'type' in spring) {
-    return { ...spring, damping }
+  const springConfig = ANIMATION_EASE[stiffness]
+  if (damping !== undefined && 'type' in springConfig) {
+    return { ...springConfig, damping }
   }
-  return spring
+  return springConfig
 }
