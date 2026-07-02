@@ -9,6 +9,9 @@ import { useEffect, useState, useRef, RefObject } from 'react'
 import { motion, useInView, MotionValue, useSpring, useTransform, scroll, useScroll } from 'framer-motion'
 import { COUNTER_CONFIG } from './config'
 
+// Correct type for useInView margin prop (framer-motion v11+)
+type InViewMargin = string | number | { top?: number | string; right?: number | string; bottom?: number | string; left?: number | string }
+
 // ============================================
 // SCROLL-TRIGGERED ANIMATIONS
 // ============================================
@@ -19,14 +22,13 @@ import { COUNTER_CONFIG } from './config'
  */
 export function useScrollReveal(options?: {
   threshold?: number
-  margin?: string
+  margin?: InViewMargin
   once?: boolean
 }) {
   const ref = useRef<HTMLDivElement>(null)
-  const marginValue = (options?.margin ?? '-50px') as Parameters<typeof useInView>[1]['margin']
   const isInView = useInView(ref, {
     once: options?.once ?? true,
-    margin: marginValue,
+    margin: options?.margin ?? ('-50px' as InViewMargin),
     amount: options?.threshold ?? 0.2,
   })
 
@@ -38,8 +40,7 @@ export function useScrollReveal(options?: {
  */
 export function useStaggerContainer(itemCount: number, delay: number = 0.08) {
   const ref = useRef<HTMLDivElement>(null)
-  const marginValue = '-50px' as Parameters<typeof useInView>[1]['margin']
-  const isInView = useInView(ref, { once: true, margin: marginValue })
+  const isInView = useInView(ref, { once: true, margin: '-50px' as InViewMargin })
 
   const childVariants = {
     hidden: { opacity: 0, y: 30 },
