@@ -11,6 +11,10 @@ lib/animations/
 ├── hooks.ts       # Custom hooks cho animation
 └── index.ts       # Export tất cả
 
+
+
+
+hellohello
 components/ui/
 ├── animate-on-scroll.tsx   # Scroll-triggered animations
 ├── animated-counter.tsx    # Counter animations
