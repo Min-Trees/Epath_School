@@ -19,18 +19,20 @@ Hướng dẫn triển khai website EPath trên Vercel.
 
 ### 2. Cấu hình Environment Variables
 
-Trong Vercel Dashboard > Project > Settings > Environment Variables:
+Trong Vercel Dashboard > Project > Settings > Environment Variables, thêm các biến sau:
 
 | Variable Name | Value | Environment |
 |--------------|-------|-------------|
-| `NEXT_PUBLIC_FIREBASE_API_KEY` | Firebase API Key | Production, Preview, Development |
-| `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN` | Firebase Auth Domain | Production, Preview, Development |
-| `NEXT_PUBLIC_FIREBASE_PROJECT_ID` | Firebase Project ID | Production, Preview, Development |
-| `NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET` | Firebase Storage Bucket | Production, Preview, Development |
-| `NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID` | Firebase Messaging Sender ID | Production, Preview, Development |
-| `NEXT_PUBLIC_FIREBASE_APP_ID` | Firebase App ID | Production, Preview, Development |
+| `NEXT_PUBLIC_FIREBASE_API_KEY` | AIzaSyBmsQAaUjtOGhQL11V4fPkjH-tusg3rH9o | Production, Preview, Development |
+| `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN` | epath-f6277.firebaseapp.com | Production, Preview, Development |
+| `NEXT_PUBLIC_FIREBASE_PROJECT_ID` | epath-f6277 | Production, Preview, Development |
+| `NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET` | epath-f6277.firebasestorage.app | Production, Preview, Development |
+| `NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID` | 845423652952 | Production, Preview, Development |
+| `NEXT_PUBLIC_FIREBASE_APP_ID` | 1:845423652952:web:436387e2e37eb98a90da2d | Production, Preview, Development |
+| `NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID` | G-VJ2LRYWXRF | Production, Preview, Development |
+| `GROQ_API_KEY` | (from console.groq.com/keys) | Production, Preview, Development |
 
-**Lưu ý:** Các biến này phải bắt đầu với `NEXT_PUBLIC_` để có thể truy cập từ client-side.
+**Lưu ý:** Các biến Firebase phải bắt đầu với `NEXT_PUBLIC_` để truy cập từ client-side.
 
 ### 3. Cấu hình Domain (tùy chọn)
 
@@ -132,8 +134,10 @@ export const auth = getAuth(app)
 ### Environment Variables không hoạt động
 
 1. Đảm bảo biến đã được thêm đúng trong Vercel Settings
-2. Redeploy sau khi thêm biến mới
-3. Kiểm tra prefix `NEXT_PUBLIC_` cho biến client-side
+2. KHÔNG dùng reference đến Secret nếu chưa tạo Secret đó
+3. Dùng giá trị trực tiếp hoặc tạo Secret trước bằng `vercel secrets add <name> <value>`
+4. Redeploy sau khi thêm biến mới
+5. Kiểm tra prefix `NEXT_PUBLIC_` cho biến client-side
 
 ### i18n Routing lỗi
 
