@@ -143,3 +143,37 @@ html {
 .layout-stable {
   contain: layout style;
 }
+
+/* -----------------------------------------------------------------
+   Native View Transitions API (Chrome / Edge / Safari 18+).
+   Used by the LanguageSwitcher so the entire page cross-fades
+   atomically when the user toggles vi <-> en, instead of the
+   previous "first paint old, then snap to new" flicker.
+   ----------------------------------------------------------------- */
+@layer base {
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation-duration: 0.22s;
+    animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  ::view-transition-old(root) {
+    animation-name: vt-fade-out;
+  }
+  ::view-transition-new(root) {
+    animation-name: vt-fade-in;
+  }
+}
+
+@keyframes vt-fade-out {
+  to { opacity: 0; }
+}
+@keyframes vt-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* Suppress browser default transition on the language label so our
+   animate-fade-in keyframe owns the timing entirely. */
+.view-transition-target {
+  view-transition-name: language-switcher;
+}

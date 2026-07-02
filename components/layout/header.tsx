@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useTransition } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useLocale, useTranslations } from 'next-intl'
@@ -16,12 +16,33 @@ export function Header() {
   const [isScrolled, setIsScrolled] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null)
+  // useTransition gives React a way to mark locale updates as
+  // "non-urgent" so that the visible tree (header / footer / main)
+  // stays responsive while the new route is being prepared. This is
+  // what eliminates the brief unresponsive-frame that previously
+  // felt like a "flicker" on slow networks.
+  const [, startTransition] = useTransition()
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 20)
     window.addEventListener('scroll', handleScroll, { passive: true })
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
+
+  // Close mobile menu on route changes
+  useEffect(() => {
+    setIsMobileMenuOpen(false)
+    setActiveDropdown(null)
+  }, [locale])
+
+  // The navigation array is built eagerly; if the locale changes,
+  // the component re-renders with the new strings. We wrap the close
+  // calls in startTransition so they don't block input.
+  useEffect(() => {
+    startTransition(() => {
+      setIsMobileMenuOpen(false)
+    })
+  }, [locale, startTransition])
 
   const navItems = [
     { label: t('home'), href: `/${locale}` },
@@ -61,7 +82,7 @@ export function Header() {
   return (
     <header
       className={cn(
-        'fixed top-0 left-0 right-0 z-50 transition-all duration-200',
+        'fixed top-0 left-0 right-0 z-50 transition-colors duration-200',
         isScrolled
           ? 'bg-white/95 backdrop-blur-md shadow-sm py-2'
           : 'bg-[#3A53A3]/95 backdrop-blur-md py-3'
@@ -140,7 +161,7 @@ export function Header() {
             <LanguageSwitcher />
             <Link
               href={`/${locale}/admissions#contact`}
-              className="px-5 py-2.5 bg-[#F05A28] text-white text-sm font-medium rounded-full hover:bg-[#E04D1A] transition-all duration-200 shadow-md hover:shadow-lg hover:-translate-y-0.5"
+              className="px-5 py-2.5 bg-[#F05A28] text-white text-sm font-medium rounded-full hover:bg-[#E04D1A] transition-colors duration-200 shadow-md hover:shadow-lg hover:-translate-y-0.5"
             >
               {t('register')}
             </Link>

@@ -1,15 +1,23 @@
-'use client'
-
-import { useLocale, useTranslations } from 'next-intl'
 import Image from 'next/image'
 import Link from 'next/link'
+import { getTranslations } from 'next-intl/server'
 import { MapPin, Phone, Mail, Facebook, Youtube, Instagram } from 'lucide-react'
 import { semanticColors } from '@/lib/design-tokens'
 
-export function Footer() {
-  const t = useTranslations('footer')
-  const tNav = useTranslations('nav')
-  const locale = useLocale()
+/**
+ * Server-rendered Footer.
+ *
+ * Why server:
+ * - The Footer sits OUTSIDE the page-transition wrapper, so if it
+ *   were a client component, switching locale would keep the old
+ *   locale's text visible during the brief window between URL change
+ *   and client re-render (the "Vietnamese footer flash" bug).
+ * - Rendering it on the server guarantees the locale prop and the
+ *   text content always come from the same source, atomically.
+ */
+export async function Footer({ locale }: { locale: string }) {
+  const t = await getTranslations({ locale, namespace: 'footer' })
+  const tNav = await getTranslations({ locale, namespace: 'nav' })
 
   const footerLinks = {
     programs: [
@@ -24,18 +32,14 @@ export function Footer() {
       { labelKey: 'mission' as const, href: `/${locale}/about#mission` },
       { labelKey: 'values' as const, href: `/${locale}/about#values` },
     ],
-    admissions: [
-      { labelKey: 'tuition' as const, href: `/${locale}/admissions#tuition` },
-      { labelKey: 'faq' as const, href: `/${locale}/admissions#faq` },
-      { labelKey: 'contact' as const, href: `/${locale}/admissions#contact` },
-    ],
   }
 
-  const partners = t.rich('partners', {
-    item: (name) => name,
-  }) as unknown as string[]
-  const partnerList = Array.isArray(partners) && partners.length > 0
-    ? partners
+  // Use `t.raw('partners')` to read the array directly. `t.rich()`
+  // does not support arrays of plain strings, and `t('partners')`
+  // would call .toString() on the array, producing "A,B,C".
+  const rawPartners = t.raw('partners') as unknown
+  const partnerList: string[] = Array.isArray(rawPartners)
+    ? (rawPartners as string[])
     : ['Edmentum International', 'Cambridge Assessment', 'Cognia & WASC', 'FabLab EIU']
 
   return (
@@ -150,7 +154,7 @@ export function Footer() {
               <li className="flex items-center gap-3">
                 <Phone className="w-5 h-5 text-white shrink-0" />
                 <a
-                  href="tel:0912345678"
+                  href={`tel:${t('contact.phone').replace(/\s/g, '')}`}
                   className="text-white/70 hover:text-white transition-colors duration-200 text-sm"
                 >
                   {t('contact.phone')}
@@ -159,7 +163,7 @@ export function Footer() {
               <li className="flex items-center gap-3">
                 <Mail className="w-5 h-5 text-white shrink-0" />
                 <a
-                  href="mailto:info@epatheducation.edu.vn"
+                  href={`mailto:${t('contact.email')}`}
                   className="text-white/70 hover:text-white transition-colors duration-200 text-sm break-all"
                 >
                   {t('contact.email')}

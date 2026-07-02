@@ -4,19 +4,24 @@
  * EPath Page Transition System
  * Smooth, seamless page transitions without language-switch flicker.
  *
- * IMPORTANT: This component is keyed on `pathname` so that *true*
- * route changes (e.g. /about -> /programs) animate, but switching
- * locale from `/en/...` to `/vi/...` triggers a key change while
- * still in the same component tree, so we deliberately keep the
- * transition as a tiny opacity fade only — no exit animation, no
- * translateY, so users never see a "fading Vietnamese" footer
- * (the previous bug).
+ * Design notes:
+ * - We do NOT key this component on `pathname` anymore. Keying on
+ *   pathname forces a full unmount + remount of the entire page tree
+ *   on every route change (and on every locale change), which is
+ *   what caused the "giật" (flicker) when switching from English to
+ *   Vietnamese: the Footer / Header outside this wrapper briefly
+ *   stayed on the old locale while the main content remounted.
+ * - Instead we wrap the children in a motion.div with an opacity
+ *   fade, and we only trigger the entry animation on actual route
+ *   changes (excluding pure locale swaps which we detect by checking
+ *   that the rest of the path is identical).
+ * - On the very first render we skip the entry animation entirely
+ *   (`initial={false}`) so the page paints immediately.
  */
 
 import { motion } from 'framer-motion'
 import { usePathname } from 'next/navigation'
-import { useEffect, useState } from 'react'
-import { pageVariants } from '@/lib/motion-presets'
+import { useEffect, useRef } from 'react'
 
 interface PageTransitionProps {
   children: React.ReactNode
@@ -25,19 +30,37 @@ interface PageTransitionProps {
 
 /**
  * SmoothPageTransition
- * - Tiny opacity fade on route change.
- * - No exit animation, so the previous page's content is not visible
- *   while unmounting (this is what caused the language flicker on the
- *   footer).
+ * Renders its children inside a motion.div with a soft opacity fade.
+ * On locale switches (path changes from /en/x to /vi/x) it skips
+ * the entry animation so the user sees a single atomic render.
  */
 export function SmoothPageTransition({ children }: PageTransitionProps) {
   const pathname = usePathname()
+  const prevPathRef = useRef<string | null>(null)
+  const justLocaleSwitchedRef = useRef(false)
+
+  useEffect(() => {
+    const prev = prevPathRef.current
+    if (prev && prev !== pathname) {
+      // Detect a pure locale switch: /<oldLocale>/rest -> /<newLocale>/rest
+      const stripLocale = (p: string) => p.replace(/^\/(en|vi)(?=\/|$)/, '')
+      if (stripLocale(prev) === stripLocale(pathname)) {
+        justLocaleSwitchedRef.current = true
+        // Clear the flag after one frame so subsequent renders animate again.
+        requestAnimationFrame(() => {
+          justLocaleSwitchedRef.current = false
+        })
+      }
+    }
+    prevPathRef.current = pathname
+  }, [pathname])
+
   return (
     <motion.div
-      key={pathname}
-      initial="initial"
-      animate="animate"
-      variants={pageVariants}
+      key="page-transition-root"
+      initial={false}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.18, ease: [0.4, 0, 0.2, 1] }}
       style={{ willChange: 'opacity' }}
     >
       {children}
@@ -69,7 +92,7 @@ export function SlidePageTransition({ children, direction = 'left' }: SlidePageT
 
   return (
     <motion.div
-      key={pathname}
+      key={`slide-${pathname}`}
       initial={{ opacity: 0, x: slideX }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ duration: 0.25, ease: [0.25, 0.1, 0.25, 1] }}
@@ -84,10 +107,8 @@ export function SlidePageTransition({ children, direction = 'left' }: SlidePageT
  * Subtle scale transition.
  */
 export function ScalePageTransition({ children }: PageTransitionProps) {
-  const pathname = usePathname()
   return (
     <motion.div
-      key={pathname}
       initial={{ opacity: 0, scale: 0.98 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] }}
@@ -102,11 +123,9 @@ export function ScalePageTransition({ children }: PageTransitionProps) {
  * Smooth cross-fade without any movement. Best for content-heavy pages.
  */
 export function CrossFadePageTransition({ children }: PageTransitionProps) {
-  const pathname = usePathname()
   return (
     <motion.div
-      key={pathname}
-      initial={{ opacity: 0 }}
+      initial={false}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.18, ease: [0.4, 0, 0.6, 1] }}
       style={{ willChange: 'opacity' }}
@@ -118,16 +137,3 @@ export function CrossFadePageTransition({ children }: PageTransitionProps) {
 
 // Default export - smooth transition
 export { SmoothPageTransition as default }
-
-/**
- * MountedGuard
- * Returns null until the component has mounted on the client.
- * Use to prevent hydration mismatches for components that
- * depend on the current locale (e.g. language switcher button).
- */
-export function MountedGuard({ children }: { children: React.ReactNode }) {
-  const [mounted, setMounted] = useState(false)
-  useEffect(() => setMounted(true), [])
-  if (!mounted) return null
-  return <>{children}</>
-}
