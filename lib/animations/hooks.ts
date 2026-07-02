@@ -23,9 +23,10 @@ export function useScrollReveal(options?: {
   once?: boolean
 }) {
   const ref = useRef<HTMLDivElement>(null)
+  const marginValue = (options?.margin ?? '-50px') as Parameters<typeof useInView>[1]['margin']
   const isInView = useInView(ref, {
     once: options?.once ?? true,
-    margin: options?.margin ?? ('-50px' as const),
+    margin: marginValue,
     amount: options?.threshold ?? 0.2,
   })
 
@@ -37,7 +38,8 @@ export function useScrollReveal(options?: {
  */
 export function useStaggerContainer(itemCount: number, delay: number = 0.08) {
   const ref = useRef<HTMLDivElement>(null)
-  const isInView = useInView(ref, { once: true, margin: '-50px' as const })
+  const marginValue = '-50px' as Parameters<typeof useInView>[1]['margin']
+  const isInView = useInView(ref, { once: true, margin: marginValue })
 
   const childVariants = {
     hidden: { opacity: 0, y: 30 },
