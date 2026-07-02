@@ -3,28 +3,24 @@
 /**
  * HeroSection - EPath Landing Hero
  * Smooth text animations with staggered entrance
+ * Unified with motion-presets for consistent timing.
  */
 
-import { motion, useInView } from 'framer-motion'
+import { motion } from 'framer-motion'
 import { useTranslations } from 'next-intl'
 import { ArrowRight, ChevronDown } from 'lucide-react'
 import { useParams } from 'next/navigation'
-import { useRef } from 'react'
+import { duration, easeOut, easeStandard } from '@/lib/motion-presets'
 
-// Smooth ease curve
-const SMOOTH_EASE = [0.4, 0, 0.2, 1] as const
-
-// Animation timing
 const TIMING = {
-  titleStart: 0.3,
-  titleWordDelay: 0.12,
-  subtitleDelay: 1.2,
-  descriptionDelay: 1.6,
-  ctaDelay: 2.0,
-  scrollDelay: 2.4,
+  titleStart: 0.2,
+  titleWordDelay: 0.1,
+  subtitleDelay: 0.9,
+  descriptionDelay: 1.2,
+  ctaDelay: 1.5,
+  scrollDelay: 1.8,
 }
 
-// Word-by-word animation for title
 const wordVariants = {
   hidden: { opacity: 0, y: 20 },
   visible: (i: number) => ({
@@ -32,8 +28,8 @@ const wordVariants = {
     y: 0,
     transition: {
       delay: TIMING.titleStart + i * TIMING.titleWordDelay,
-      duration: 0.4,
-      ease: SMOOTH_EASE,
+      duration: duration.slow,
+      ease: easeOut,
     },
   }),
 }
@@ -41,9 +37,8 @@ const wordVariants = {
 export function HeroSection() {
   const t = useTranslations('hero')
   const params = useParams()
-  const locale = params.locale as string || 'vi'
+  const locale = (params.locale as string) || 'vi'
 
-  // Split title into words
   const welcomeText = t('welcome')
   const titleText = t('title')
   const subtitleText = t('subtitle')
@@ -61,20 +56,17 @@ export function HeroSection() {
           preload="auto"
           className="w-full h-full object-cover"
         >
-          <source 
-            src="https://www.littlepeople.edu.vn/wp-content/uploads/2024/08/Slider-169-rev.mp4" 
-            type="video/mp4" 
+          <source
+            src="https://www.littlepeople.edu.vn/wp-content/uploads/2024/08/Slider-169-rev.mp4"
+            type="video/mp4"
           />
         </video>
-        
-        {/* Overlay */}
+
         <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/50 to-black/70" />
       </div>
 
-      {/* Content */}
       <div className="container mx-auto px-4 relative z-10 flex items-center justify-center min-h-screen">
         <div className="text-center max-w-4xl">
-          {/* Title Line 1: Chào mừng đến với */}
           <motion.h1
             variants={wordVariants}
             initial="hidden"
@@ -83,7 +75,7 @@ export function HeroSection() {
           >
             {welcomeText.split(' ').map((word, i) => (
               <motion.span
-                key={i}
+                key={`${welcomeText}-${i}`}
                 custom={i}
                 variants={wordVariants}
                 className="inline-block mr-[0.25em]"
@@ -93,7 +85,6 @@ export function HeroSection() {
             ))}
           </motion.h1>
 
-          {/* Title Line 2: EPath Education - Accent Color */}
           <motion.h1
             variants={wordVariants}
             initial="hidden"
@@ -102,7 +93,7 @@ export function HeroSection() {
           >
             {titleText.split(' ').map((word, i) => (
               <motion.span
-                key={i}
+                key={`${titleText}-${i}`}
                 custom={welcomeText.split(' ').length + i}
                 variants={wordVariants}
                 className="inline-block mr-[0.25em]"
@@ -112,57 +103,55 @@ export function HeroSection() {
             ))}
           </motion.h1>
 
-          {/* Subtitle */}
           <motion.p
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ 
-              delay: TIMING.subtitleDelay, 
-              duration: 0.5, 
-              ease: SMOOTH_EASE 
+            transition={{
+              delay: TIMING.subtitleDelay,
+              duration: duration.normal,
+              ease: easeOut,
             }}
             className="text-lg md:text-xl lg:text-2xl text-white/90 font-medium leading-relaxed mb-4"
           >
             {subtitleText}
           </motion.p>
 
-          {/* Description */}
           <motion.p
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ 
-              delay: TIMING.descriptionDelay, 
-              duration: 0.5, 
-              ease: SMOOTH_EASE 
+            transition={{
+              delay: TIMING.descriptionDelay,
+              duration: duration.normal,
+              ease: easeOut,
             }}
             className="text-base md:text-lg text-white/80 leading-relaxed max-w-2xl mx-auto"
           >
             {descriptionText}
           </motion.p>
 
-          {/* CTA Button */}
           <motion.a
             href={`/${locale}/about`}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ 
-              delay: TIMING.ctaDelay, 
-              duration: 0.4, 
-              ease: SMOOTH_EASE 
+            transition={{
+              delay: TIMING.ctaDelay,
+              duration: duration.normal,
+              ease: easeOut,
             }}
-            whileHover={{ scale: 1.05, y: -3 }}
-            whileTap={{ scale: 0.95 }}
-            className="inline-flex items-center gap-3 bg-[#F05A28] hover:bg-[#E04D1A] text-white px-10 py-4 rounded-full text-lg font-medium transition-all duration-200 shadow-lg hover:shadow-xl mt-10"
+            whileHover={{ scale: 1.04, y: -3 }}
+            whileTap={{ scale: 0.97 }}
+            className="inline-flex items-center gap-3 bg-[#F05A28] hover:bg-[#E04D1A] text-white px-10 py-4 rounded-full text-lg font-medium transition-colors duration-200 shadow-lg hover:shadow-xl mt-10"
           >
             {t('cta')}
             <motion.span
               animate={{ x: [0, 6, 0] }}
-              transition={{ 
-                duration: 1.5, 
-                repeat: Infinity, 
+              transition={{
+                duration: 1.5,
+                repeat: Infinity,
                 ease: 'easeInOut',
-                repeatDelay: 0.5
+                repeatDelay: 0.5,
               }}
+              className="inline-flex"
             >
               <ArrowRight className="w-5 h-5" />
             </motion.span>
@@ -170,23 +159,19 @@ export function HeroSection() {
         </div>
       </div>
 
-      {/* Scroll Indicator */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ 
-          delay: TIMING.scrollDelay, 
-          duration: 0.4 
+        transition={{
+          delay: TIMING.scrollDelay,
+          duration: duration.normal,
+          ease: easeStandard,
         }}
         className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20"
       >
         <motion.div
           animate={{ y: [0, 8, 0] }}
-          transition={{ 
-            duration: 1.5, 
-            repeat: Infinity, 
-            ease: 'easeInOut' 
-          }}
+          transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
           className="flex flex-col items-center gap-2"
         >
           <span className="text-white/50 text-xs uppercase tracking-widest">Scroll</span>

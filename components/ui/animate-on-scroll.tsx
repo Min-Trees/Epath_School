@@ -3,10 +3,22 @@
 /**
  * AnimateOnScroll Component
  * Wrapper component for scroll-triggered animations
+ * Now uses the unified motion-presets for consistent, jitter-free motion.
  */
 
-import { motion, MotionProps } from 'framer-motion'
+import { motion } from 'framer-motion'
 import { ReactNode } from 'react'
+import {
+  duration,
+  easeOut,
+  fadeIn,
+  fadeInDown,
+  fadeInLeft,
+  fadeInRight,
+  fadeInUp,
+  inViewViewport,
+  scaleIn,
+} from '@/lib/motion-presets'
 
 type AnimationDirection = 'up' | 'down' | 'left' | 'right' | 'none' | 'scale'
 type AnimationPreset = 'fade' | 'slide' | 'scale' | 'bounce'
@@ -19,41 +31,39 @@ interface AnimateOnScrollProps {
   duration?: number
   className?: string
   once?: boolean
-  margin?: string
-  threshold?: number
-  as?: keyof JSX.IntrinsicElements
+  amount?: number
 }
 
-const directionVariants = {
-  up: { y: 30, x: 0 },
-  down: { y: -30, x: 0 },
-  left: { x: 30, y: 0 },
-  right: { x: -30, y: 0 },
-  none: { x: 0, y: 0 },
-  scale: { x: 0, y: 0 },
+const directionToVariants = (direction: AnimationDirection) => {
+  switch (direction) {
+    case 'up':
+      return fadeInUp
+    case 'down':
+      return fadeInDown
+    case 'left':
+      return fadeInRight
+    case 'right':
+      return fadeInLeft
+    case 'scale':
+      return scaleIn
+    default:
+      return fadeIn
+  }
 }
 
-const presetVariants = {
-  fade: {
-    hidden: { opacity: 0 },
-    visible: { opacity: 1 },
-  },
-  slide: {
-    hidden: { opacity: 0, y: 30 },
-    visible: { opacity: 1, y: 0 },
-  },
-  scale: {
-    hidden: { opacity: 0, scale: 0.9 },
-    visible: { opacity: 1, scale: 1 },
-  },
-  bounce: {
-    hidden: { opacity: 0, scale: 0.8 },
-    visible: { 
-      opacity: 1, 
-      scale: 1,
-      transition: { type: 'spring', stiffness: 400, damping: 15 }
-    },
-  },
+const presetToVariants = (preset: AnimationPreset) => {
+  switch (preset) {
+    case 'fade':
+      return fadeIn
+    case 'slide':
+      return fadeInUp
+    case 'scale':
+      return scaleIn
+    case 'bounce':
+      return scaleIn
+    default:
+      return fadeInUp
+  }
 }
 
 export function AnimateOnScroll({
@@ -61,35 +71,20 @@ export function AnimateOnScroll({
   direction = 'up',
   preset = 'slide',
   delay = 0,
-  duration = 0.4,
+  duration: dur,
   className,
   once = true,
-  margin = '-50px',
-  threshold = 0.2,
-  as: Tag = 'div',
+  amount = 0.2,
 }: AnimateOnScrollProps) {
-  const directionOffset = directionVariants[direction]
-  const presetConfig = presetVariants[preset]
-  
-  // For scale direction
-  const hiddenState = direction === 'scale'
-    ? { opacity: 0, scale: 0.8 }
-    : { opacity: 0, ...directionOffset }
-  
-  const visibleState = direction === 'scale'
-    ? { opacity: 1, scale: 1 }
-    : { opacity: 1, x: 0, y: 0 }
+  const variants = directionToVariants(direction === 'none' ? 'none' : direction) ?? presetToVariants(preset)
 
   return (
     <motion.div
       initial="hidden"
       whileInView="visible"
-      viewport={{ once, margin, amount: threshold }}
-      transition={{ duration, delay, ease: [0, 0, 0.2, 1] }}
-      variants={{
-        hidden: hiddenState,
-        visible: visibleState,
-      }}
+      viewport={{ ...inViewViewport, amount, once }}
+      transition={{ duration: dur ?? duration.normal, delay, ease: easeOut }}
+      variants={variants}
       className={className}
     >
       {children}
@@ -113,19 +108,19 @@ export function StaggerContainer({
   children,
   staggerDelay = 0.08,
   className,
-  as: Tag = 'div',
 }: StaggerContainerProps) {
   return (
     <motion.div
       initial="hidden"
       whileInView="visible"
-      viewport={{ once: true, margin: '-50px' }}
+      viewport={{ once: true, amount: 0.2, margin: '0px 0px -10% 0px' }}
       variants={{
         hidden: { opacity: 0 },
         visible: {
           opacity: 1,
           transition: {
             staggerChildren: staggerDelay,
+            delayChildren: 0,
           },
         },
       }}
@@ -138,8 +133,8 @@ export function StaggerContainer({
 
 /**
  * StaggerItem Component
- * Individual item in a stagger container
- * Must be used inside StaggerContainer
+ * Individual item in a stagger container.
+ * Must be used inside StaggerContainer.
  */
 
 interface StaggerItemProps {
@@ -155,23 +150,12 @@ export function StaggerItem({
   direction = 'up',
   delay = 0,
 }: StaggerItemProps) {
-  const directionOffset = {
-    up: { y: 30 },
-    down: { y: -30 },
-    left: { x: 30 },
-    right: { x: -30 },
-    none: {},
-    scale: { scale: 0.9 },
-  }
-
-  const offset = directionOffset[direction]
+  const variants = directionToVariants(direction)
 
   return (
     <motion.div
-      initial={{ opacity: 0, ...offset }}
-      whileInView={{ opacity: 1, x: 0, y: 0, scale: 1 }}
-      viewport={{ once: true }}
-      transition={{ duration: 0.4, delay, ease: [0, 0, 0.2, 1] }}
+      variants={variants}
+      transition={{ duration: duration.normal, delay, ease: easeOut }}
       className={className}
     >
       {children}
@@ -196,15 +180,15 @@ export function AnimateInView({
   children,
   className,
   delay = 0,
-  duration = 0.4,
+  duration: dur = 0.35,
   y = 20,
 }: AnimateInViewProps) {
   return (
     <motion.div
       initial={{ opacity: 0, y }}
       whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: '-50px' }}
-      transition={{ duration, delay, ease: [0, 0, 0.2, 1] }}
+      viewport={{ once: true, amount: 0.2, margin: '0px 0px -10% 0px' }}
+      transition={{ duration: dur, delay, ease: easeOut }}
       className={className}
     >
       {children}

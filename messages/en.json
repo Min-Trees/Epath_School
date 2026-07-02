@@ -55,7 +55,11 @@
     "title": "Learning Pathways by Age",
     "subtitle": "From Kindergarten to High School - Continuous Pathway",
     "curriculum": "Curriculum",
-    "viewAll": "View all programs"
+    "viewAll": "View all programs",
+    "kindergartenDesc": "A perfect start to your child's learning journey",
+    "elementaryDesc": "A solid foundation with the US-standard curriculum",
+    "middleDesc": "Develop skills and academic thinking",
+    "highDesc": "International dual diploma, opens doors to study abroad"
   },
   "partners": {
     "title": "International Partners",
@@ -63,7 +67,13 @@
     "learnMore": "Learn more about our partners",
     "cognia": "Intl Accreditation",
     "wasc": "US Accreditation",
-    "edmentumPartner": "Strategic Partner"
+    "edmentumPartner": "Strategic Partner",
+    "edmentumDesc": "US-standard curriculum with 60+ years of experience",
+    "cambridgeDesc": "International English exams and certifications",
+    "cogniaDesc": "Global education quality accreditation",
+    "wascDesc": "Trusted US school accreditation",
+    "fablabDesc": "Modern STEM lab at EIU",
+    "edoptionsDesc": "US-standard online high-school program"
   },
   "cta": {
     "title": "Start your international academic journey with EPath today",
@@ -107,7 +117,17 @@
     },
     "milestones": {
       "title": "Development Milestones",
-      "subtitle": "Journey of building and developing EPath Education"
+      "subtitle": "Journey of building and developing EPath Education",
+      "m1Title": "Little People Founded",
+      "m1Desc": "Started with the Little People kindergarten program in Binh Duong.",
+      "m2Title": "Edmentum Partnership",
+      "m2Desc": "Became an official partner of Edmentum International.",
+      "m3Title": "Cognia Accreditation",
+      "m3Desc": "Achieved the international Cognia quality accreditation.",
+      "m4Title": "High-School Expansion",
+      "m4Desc": "Launched the Dual Diploma program for high-school students.",
+      "m5Title": "Complete Ecosystem",
+      "m5Desc": "Completed the continuous learning pathway from Kindergarten to High School."
     },
     "cta": {
       "title": "Ready to Start Your Journey with EPath?",
@@ -172,7 +192,8 @@
       "address": "Address",
       "hotline": "Hotline",
       "emailLabel": "Email",
-      "hours": "Working Hours"
+      "hours": "Working Hours",
+      "hoursValue": "Mon - Fri: 8:00 - 17:00"
     },
     "tuition": {
       "title": "Tuition Packages",
@@ -201,7 +222,8 @@
       "address": "Address",
       "phone": "Phone",
       "email": "Email",
-      "hours": "Working Hours"
+      "hours": "Working Hours",
+      "hoursValue": "Mon - Fri: 8:00 - 17:00"
     },
     "form": {
       "title": "Send Us a Message",
@@ -233,6 +255,12 @@
     "registered": "Registered",
     "register": "Register to Attend",
     "viewDetail": "View Details",
+    "eventLabel": "Event",
+    "location": "EPath Center",
+    "event1Title": "Open House Day",
+    "event2Title": "Edmentum Workshop",
+    "event3Title": "Parent Orientation",
+    "event4Title": "Cambridge Briefing",
     "cta": {
       "title": "Want to receive event information earliest?",
       "subtitle": "Register your email to receive the latest EPath events",
@@ -248,6 +276,12 @@
     "certification": { "title": "Accreditation", "desc": "International educational quality accreditation organizations" },
     "lab": { "title": "Lab", "desc": "Facilities supporting STEM learning" },
     "features": "Key Features",
+    "featureList": {
+      "f1": "Globally recognized US-standard curriculum",
+      "f2": "Accredited by Cognia and WASC",
+      "f3": "Personalized learning pathways",
+      "f4": "Continuous support from K-12"
+    },
     "visitWebsite": "Visit Website",
     "cta": {
       "title": "Learn more about EPath's partners",
@@ -275,5 +309,50 @@
   "language": {
     "vi": "Tiếng Việt",
     "en": "English"
+  },
+  "testimonials": {
+    "title": "What Parents Say About EPath",
+    "subtitle": "Trusted by hundreds of families across Vietnam",
+    "list": [
+      {
+        "name": "Ms. Nguyen Thi Lan",
+        "location": "District 1, HCMC",
+        "quote": "My child who couldn't write English, after 6 months at EPath now studies online without reminders. What impressed me most is the Blended Learning method that gives flexibility while ensuring quality.",
+        "rating": 5
+      },
+      {
+        "name": "Mr. Tran Van Minh",
+        "location": "Thu Duc, HCMC",
+        "quote": "My spouse and I are busy with work and don't have much time to tutor our child. EPath has taken over tracking progress and providing detailed periodic reports for us.",
+        "rating": 5
+      },
+      {
+        "name": "Ms. Pham Thi Huong",
+        "location": "Binh Thanh, HCMC",
+        "quote": "We've tried many centers but EPath is the only one with a continuous learning pathway from kindergarten to high school. My child's knowledge isn't interrupted and is much more confident taking Cambridge exams.",
+        "rating": 5
+      }
+    ]
+  },
+  "footer": {
+    "description": "International academic pathway from Elementary to High School. Blended Learning - Edmentum International - Personalized learning pathways.",
+    "programsTitle": "Programs",
+    "quickLinksTitle": "EPath",
+    "contactTitle": "Contact",
+    "partnersTitle": "Partners",
+    "contact": {
+      "address": "38 Tran Phu, Thu Dau Mot, HCMC",
+      "phone": "+84 912 345 678",
+      "email": "info@epatheducation.edu.vn"
+    },
+    "partners": [
+      "Edmentum International",
+      "Cambridge Assessment",
+      "Cognia & WASC",
+      "FabLab EIU"
+    ],
+    "copyright": "© {year} EPath Education. All rights reserved.",
+    "privacy": "Privacy Policy",
+    "terms": "Terms of Use"
   }
 }

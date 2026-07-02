@@ -3,11 +3,13 @@
 /**
  * AnimateHover Component
  * Hover animations for interactive elements
+ * Unified with motion-presets for smooth, non-jittery hover state.
  */
 
 import React, { useRef, useState } from 'react'
 import { motion, MotionProps } from 'framer-motion'
 import { ReactNode } from 'react'
+import { duration, easeOut } from '@/lib/motion-presets'
 
 type HoverPreset = 'scale' | 'lift' | 'glow' | 'wiggle'
 
@@ -21,10 +23,6 @@ interface AnimateHoverProps {
   whileTap?: boolean
 }
 
-/**
- * AnimateHover Component
- * Wraps children with hover/tap animations
- */
 export function AnimateHover({
   children,
   preset = 'scale',
@@ -36,42 +34,54 @@ export function AnimateHover({
 }: AnimateHoverProps) {
   const getVariants = (): MotionProps['variants'] => {
     switch (preset) {
-      case 'scale':
+      case 'scale': {
         return {
           rest: { scale: 1 },
-          hover: whileHover ? { scale: scaleAmount } : {},
-          tap: whileTap ? { scale: 0.98 } : {},
+          hover: whileHover
+            ? { scale: scaleAmount, transition: { duration: duration.fast, ease: easeOut } }
+            : {},
+          tap: whileTap
+            ? { scale: 0.97, transition: { duration: duration.instant } }
+            : {},
         }
-      case 'lift':
+      }
+      case 'lift': {
         return {
-          rest: { y: 0, boxShadow: '0 0 0 0 transparent' },
-          hover: whileHover 
-            ? { y: yAmount, boxShadow: '0 12px 24px -8px rgba(0,0,0,0.15)' } 
+          rest: { y: 0, boxShadow: '0 4px 16px -4px rgba(35, 31, 32, 0.08)' },
+          hover: whileHover
+            ? {
+                y: yAmount,
+                boxShadow: '0 12px 28px -8px rgba(35, 31, 32, 0.18)',
+                transition: { duration: duration.fast, ease: easeOut },
+              }
             : {},
           tap: whileTap ? { y: yAmount / 2 } : {},
         }
-      case 'wiggle':
+      }
+      case 'wiggle': {
         return {
           rest: { rotate: 0 },
-          hover: whileHover 
-            ? { 
+          hover: whileHover
+            ? {
                 rotate: [-2, 2, -2, 0],
-                transition: { duration: 0.4 }
-              } 
+                transition: { duration: 0.4, ease: easeOut },
+              }
             : {},
           tap: whileTap ? { scale: 0.95 } : {},
         }
-      case 'glow':
+      }
+      case 'glow': {
         return {
           rest: { boxShadow: '0 0 0 0 rgba(58, 83, 163, 0)' },
-          hover: whileHover 
-            ? { 
-                boxShadow: '0 0 20px rgba(58, 83, 163, 0.4)',
-                transition: { duration: 0.3 }
-              } 
+          hover: whileHover
+            ? {
+                boxShadow: '0 0 24px rgba(58, 83, 163, 0.35)',
+                transition: { duration: 0.3, ease: easeOut },
+              }
             : {},
-          tap: whileTap ? { scale: 0.98 } : {},
+          tap: whileTap ? { scale: 0.97 } : {},
         }
+      }
       default:
         return undefined
     }
@@ -83,7 +93,7 @@ export function AnimateHover({
       whileHover="hover"
       whileTap="tap"
       variants={getVariants()}
-      transition={{ duration: 0.2, ease: [0, 0, 0.2, 1] }}
+      transition={{ duration: duration.fast, ease: easeOut }}
       className={className}
     >
       {children}
@@ -117,14 +127,14 @@ export function MagneticButton({
 
   const handleMouseMove = (e: React.MouseEvent) => {
     if (!ref.current || disabled) return
-    
+
     const rect = ref.current.getBoundingClientRect()
     const centerX = rect.left + rect.width / 2
     const centerY = rect.top + rect.height / 2
-    
+
     const deltaX = (e.clientX - centerX) * strength
     const deltaY = (e.clientY - centerY) * strength
-    
+
     setPosition({ x: deltaX, y: deltaY })
   }
 
@@ -138,10 +148,10 @@ export function MagneticButton({
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
       animate={{ x: position.x, y: position.y }}
-      transition={{ 
-        type: 'spring', 
-        stiffness: 200, 
-        damping: 25 
+      transition={{
+        type: 'spring',
+        stiffness: 200,
+        damping: 25,
       }}
       className={className}
     >

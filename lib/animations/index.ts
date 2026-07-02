@@ -1,7 +1,37 @@
 /**
- * EPath Animation System - Main Export
+ * EPath Motion System - Main Export
  * Central export point for all animation utilities
  */
+
+export {
+  easeOut,
+  easeInOut,
+  easeStandard,
+  duration,
+  transitionEnter,
+  transitionSlowEnter,
+  transitionPage,
+  inViewViewport,
+  staggerContainer,
+  fadeIn,
+  fadeInUp,
+  fadeInDown,
+  fadeInLeft,
+  fadeInRight,
+  scaleIn,
+  hoverLift,
+  hoverScale,
+  pageVariants,
+} from '../motion-presets'
+
+// Design tokens (colors, shadows, radii)
+export {
+  brandColors,
+  semanticColors,
+  accentCycle,
+  shadows,
+  radius,
+} from '../design-tokens'
 
 // Config exports
 export {
@@ -19,43 +49,43 @@ export type { AnimationDuration, AnimationEase, StaggerDelay } from './config'
 // Variants exports
 export {
   // Entrance
-  fadeInUp,
-  fadeInDown,
-  fadeInLeft,
-  fadeInRight,
-  fadeIn,
-  scaleIn,
+  fadeInUp as fadeInUpLegacy,
+  fadeInDown as fadeInDownLegacy,
+  fadeInLeft as fadeInLeftLegacy,
+  fadeInRight as fadeInRightLegacy,
+  fadeIn as fadeInLegacy,
+  scaleIn as scaleInLegacy,
   scaleInBounce,
-  
+
   // Stagger
   staggerFadeInUp,
   staggerFadeIn,
   staggerScaleIn,
   staggerFadeInLeft,
   staggerFadeInRight,
-  
+
   // Slide
   slideInFromRight,
   slideInFromBottom,
   slideInFromTop,
-  
+
   // Page Transition
   pageTransition,
   pageTransitionScale,
-  
+
   // Hover/Tap
   hoverScaleUp,
   hoverScaleDown,
-  hoverLift,
+  hoverLift as hoverLiftLegacy,
   buttonHover,
-  
+
   // Loop/Ambient
   float,
   pulse,
   wiggle,
   bounce,
   glowPulse,
-  
+
   // Modal
   modalIn,
   backdropIn,

@@ -4,19 +4,21 @@ import { motion } from 'framer-motion'
 import { useTranslations } from 'next-intl'
 import { ArrowRight, Sparkles } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { duration, easeOut, inViewViewport } from '@/lib/motion-presets'
+import { semanticColors } from '@/lib/design-tokens'
 
 export function CTABanner() {
   const t = useTranslations('cta')
 
   return (
-    <section className="py-16 bg-gradient-to-r from-[#3A53A3] to-[#2E4389] relative overflow-hidden">
+    <section
+      className="py-16 relative overflow-hidden"
+      style={{
+        background: `linear-gradient(135deg, ${semanticColors.primary} 0%, ${semanticColors.primaryDark} 100%)`,
+      }}
+    >
       {/* Animated Background Elements */}
-      <motion.div
-        className="absolute inset-0 opacity-10"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: [0.1, 0.2, 0.1] }}
-        transition={{ duration: 4, repeat: Infinity }}
-      >
+      <div className="absolute inset-0 opacity-10 pointer-events-none">
         {[...Array(5)].map((_, i) => (
           <motion.div
             key={i}
@@ -36,22 +38,21 @@ export function CTABanner() {
             }}
           />
         ))}
-      </motion.div>
+      </div>
 
       <div className="container mx-auto px-4 relative z-10">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.4, ease: 'easeOut' }}
+          viewport={inViewViewport}
+          transition={{ duration: duration.normal, ease: easeOut }}
           className="text-center"
         >
-          {/* Decorative Icon */}
           <motion.div
             initial={{ scale: 0, rotate: -180 }}
             whileInView={{ scale: 1, rotate: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.4, type: 'spring' }}
+            viewport={inViewViewport}
+            transition={{ duration: duration.slow, ease: easeOut }}
             className="inline-flex items-center justify-center w-16 h-16 bg-white/20 rounded-full mb-6"
           >
             <Sparkles className="w-8 h-8 text-white" />
@@ -66,14 +67,11 @@ export function CTABanner() {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.3, delay: 0.1 }}
+            viewport={inViewViewport}
+            transition={{ duration: duration.normal, delay: 0.1, ease: easeOut }}
             className="flex flex-wrap justify-center gap-4"
           >
-            <motion.div
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
+            <motion.div whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }}>
               <Button
                 size="lg"
                 className="bg-[#F05A28] hover:bg-[#E04D1A] text-white text-lg px-8 h-14 shadow-lg"
@@ -81,16 +79,14 @@ export function CTABanner() {
                 {t('primary')}
                 <motion.span
                   animate={{ x: [0, 5, 0] }}
-                  transition={{ duration: 1.5, repeat: Infinity }}
+                  transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
+                  className="ml-2 inline-flex"
                 >
-                  <ArrowRight className="ml-2 w-5 h-5" />
+                  <ArrowRight className="w-5 h-5" />
                 </motion.span>
               </Button>
             </motion.div>
-            <motion.div
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
+            <motion.div whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }}>
               <Button
                 size="lg"
                 variant="outline"

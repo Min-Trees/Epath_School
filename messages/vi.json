@@ -55,7 +55,11 @@
     "title": "Lộ trình học tập theo độ tuổi",
     "subtitle": "Từ Mầm non đến THPT - Lộ trình liên tục không gián đoạn",
     "curriculum": "Chương trình",
-    "viewAll": "Xem tất cả chương trình"
+    "viewAll": "Xem tất cả chương trình",
+    "kindergartenDesc": "Khởi đầu hoàn hảo cho hành trình học tập",
+    "elementaryDesc": "Nền tảng vững chắc với chương trình chuẩn Mỹ",
+    "middleDesc": "Phát triển kỹ năng và tư duy học thuật",
+    "highDesc": "Song bằng quốc tế, mở cánh cửa du học"
   },
   "partners": {
     "title": "Đối tác quốc tế",
@@ -63,7 +67,13 @@
     "learnMore": "Tìm hiểu thêm về đối tác",
     "cognia": "Kiểm định quốc tế",
     "wasc": "Kiểm định Mỹ",
-    "edmentumPartner": "Đối tác chiến lược"
+    "edmentumPartner": "Đối tác chiến lược",
+    "edmentumDesc": "Chương trình học chuẩn Mỹ với hơn 60 năm kinh nghiệm",
+    "cambridgeDesc": "Bài thi và chứng chỉ tiếng Anh quốc tế",
+    "cogniaDesc": "Kiểm định chất lượng giáo dục toàn cầu",
+    "wascDesc": "Kiểm định trường học Mỹ uy tín",
+    "fablabDesc": "Phòng lab STEM hiện đại tại EIU",
+    "edoptionsDesc": "Chương trình THPT trực tuyến chuẩn Mỹ"
   },
   "cta": {
     "title": "Bắt đầu hành trình học thuật quốc tế cùng EPath ngay hôm nay",
@@ -107,7 +117,17 @@
     },
     "milestones": {
       "title": "Cột mốc phát triển",
-      "subtitle": "Hành trình xây dựng và phát triển EPath Education"
+      "subtitle": "Hành trình xây dựng và phát triển EPath Education",
+      "m1Title": "Thành lập Little People",
+      "m1Desc": "Khởi đầu với chương trình mầm non Little People tại Bình Dương.",
+      "m2Title": "Hợp tác Edmentum",
+      "m2Desc": "Trở thành đối tác chính thức của Edmentum International.",
+      "m3Title": "Kiểm định Cognia",
+      "m3Desc": "Đạt chứng nhận kiểm định chất lượng Cognia quốc tế.",
+      "m4Title": "Mở rộng cấp THPT",
+      "m4Desc": "Ra mắt chương trình Dual Diploma cho học sinh THPT.",
+      "m5Title": "Hệ sinh thái hoàn chỉnh",
+      "m5Desc": "Hoàn thiện lộ trình học tập liên tục từ Mầm non đến THPT."
     },
     "cta": {
       "title": "Sẵn sàng bắt đầu hành trình cùng EPath?",
@@ -172,7 +192,8 @@
       "address": "Địa chỉ",
       "hotline": "Hotline",
       "emailLabel": "Email",
-      "hours": "Giờ làm việc"
+      "hours": "Giờ làm việc",
+      "hoursValue": "Thứ 2 - Thứ 6: 8:00 - 17:00"
     },
     "tuition": {
       "title": "Gói học phí",
@@ -201,7 +222,8 @@
       "address": "Địa chỉ",
       "phone": "Điện thoại",
       "email": "Email",
-      "hours": "Giờ làm việc"
+      "hours": "Giờ làm việc",
+      "hoursValue": "Thứ 2 - Thứ 6: 8:00 - 17:00"
     },
     "form": {
       "title": "Gửi tin nhắn cho chúng tôi",
@@ -233,6 +255,12 @@
     "registered": "Đã đăng ký",
     "register": "Đăng ký tham gia",
     "viewDetail": "Xem chi tiết",
+    "eventLabel": "Sự kiện",
+    "location": "EPath Center",
+    "event1Title": "Ngày hội Open House",
+    "event2Title": "Hội thảo Edmentum",
+    "event3Title": "Định hướng phụ huynh",
+    "event4Title": "Tọa đàm Cambridge",
     "cta": {
       "title": "Bạn muốn nhận thông tin sự kiện sớm nhất?",
       "subtitle": "Đăng ký email để nhận thông tin về các sự kiện mới nhất của EPath",
@@ -248,6 +276,12 @@
     "certification": { "title": "Kiểm định", "desc": "Các tổ chức kiểm định chất lượng giáo dục quốc tế" },
     "lab": { "title": "Phòng lab", "desc": "Cơ sở vật chất hỗ trợ học tập STEM" },
     "features": "Điểm nổi bật",
+    "featureList": {
+      "f1": "Chương trình chuẩn Mỹ được công nhận toàn cầu",
+      "f2": "Kiểm định bởi Cognia và WASC",
+      "f3": "Lộ trình học tập cá nhân hóa",
+      "f4": "Đồng hành liên tục từ Mầm non đến THPT"
+    },
     "visitWebsite": "Truy cập website",
     "cta": {
       "title": "Tìm hiểu thêm về đối tác của EPath",
@@ -275,5 +309,50 @@
   "language": {
     "vi": "Tiếng Việt",
     "en": "English"
+  },
+  "testimonials": {
+    "title": "Phụ huynh nói gì về EPath?",
+    "subtitle": "Được hàng trăm gia đình trên toàn quốc tin tưởng",
+    "list": [
+      {
+        "name": "Chị Nguyễn Thị Lan",
+        "location": "Quận 1, TP.HCM",
+        "quote": "Con tôi từ không thể viết tiếng Anh, sau 6 tháng học tại EPath đã tự học online không cần nhắc nhở. Điều tôi ấn tượng nhất là phương pháp Blended Learning giúp con linh hoạt thời gian mà vẫn đảm bảo chất lượng.",
+        "rating": 5
+      },
+      {
+        "name": "Anh Trần Văn Minh",
+        "location": "Thủ Đức, TP.HCM",
+        "quote": "Vợ chồng tôi bận rộn với công việc, không có nhiều thời gian kèm con học. EPath đã thay chúng tôi theo dõi tiến độ học tập và báo cáo định kỳ rất chi tiết.",
+        "rating": 5
+      },
+      {
+        "name": "Chị Phạm Thị Hương",
+        "location": "Bình Thạnh, TP.HCM",
+        "quote": "Chúng tôi đã thử nhiều trung tâm nhưng EPath là nơi duy nhất có lộ trình học tập liên tục từ mầm non đến THPT. Con không bị đứt gãy kiến thức và tự tin hơn rất nhiều khi thi Cambridge.",
+        "rating": 5
+      }
+    ]
+  },
+  "footer": {
+    "description": "Lộ trình học thuật quốc tế xuyên suốt từ Tiểu học đến THPT. Blended Learning - Edmentum International - Cá nhân hóa lộ trình.",
+    "programsTitle": "Chương trình",
+    "quickLinksTitle": "EPath",
+    "contactTitle": "Liên hệ",
+    "partnersTitle": "Đối tác",
+    "contact": {
+      "address": "38 Trần Phú, Thủ Dầu Một, TP.HCM",
+      "phone": "0912 345 678",
+      "email": "info@epatheducation.edu.vn"
+    },
+    "partners": [
+      "Edmentum International",
+      "Cambridge Assessment",
+      "Cognia & WASC",
+      "FabLab EIU"
+    ],
+    "copyright": "© {year} EPath Education. Bảo lưu mọi quyền.",
+    "privacy": "Chính sách bảo mật",
+    "terms": "Điều khoản sử dụng"
   }
 }

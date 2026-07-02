@@ -1,4 +1,4 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
 
@@ -31,13 +31,22 @@ export const metadata: Metadata = {
   },
 }
 
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  themeColor: '#3A53A3',
+}
+
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode
 }>) {
   return (
-    <html lang="vi">
+    // Note: the [locale] layout overrides `lang` with the active locale
+    // and wraps the body in the NextIntlClientProvider. We don't set
+    // <html lang> here so the active locale is authoritative.
+    <html suppressHydrationWarning>
       <body className={inter.className}>{children}</body>
     </html>
   )

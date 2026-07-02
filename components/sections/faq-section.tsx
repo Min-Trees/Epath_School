@@ -8,6 +8,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion'
+import { duration, easeOut, inViewViewport } from '@/lib/motion-presets'
 
 const faqs = [
   { qKey: 'q1', aKey: 'a1' },
@@ -21,14 +22,13 @@ export function FAQSection() {
   const t = useTranslations('faq')
 
   return (
-    <section className="py-20 bg-[#F8F9FA]">
+    <section className="py-20 surface-alt">
       <div className="container mx-auto px-4">
-        {/* Section Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.4 }}
+          viewport={inViewViewport}
+          transition={{ duration: duration.normal, ease: easeOut }}
           className="text-center mb-12"
         >
           <h2 className="text-3xl md:text-4xl font-bold text-[#231F20] mb-4">
@@ -39,15 +39,18 @@ export function FAQSection() {
           </p>
         </motion.div>
 
-        {/* FAQ Accordion */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.4, delay: 0.1 }}
+          viewport={inViewViewport}
+          transition={{ duration: duration.normal, delay: 0.1, ease: easeOut }}
           className="max-w-3xl mx-auto"
         >
-          <Accordion type="single" collapsible className="w-full bg-white rounded-xl p-4 shadow-sm">
+          <Accordion
+            type="single"
+            collapsible
+            className="w-full bg-white rounded-xl p-4 shadow-sm"
+          >
             {faqs.map((faq) => (
               <AccordionItem key={faq.qKey} value={faq.qKey}>
                 <AccordionTrigger className="text-left text-lg font-medium hover:text-[#3A53A3]">
@@ -61,20 +64,17 @@ export function FAQSection() {
           </Accordion>
         </motion.div>
 
-        {/* CTA */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.4, delay: 0.2 }}
+          viewport={inViewViewport}
+          transition={{ duration: duration.normal, delay: 0.2, ease: easeOut }}
           className="text-center mt-12"
         >
-          <p className="text-[#6B6B6B] mb-4">
-            {t('otherQuestion')}
-          </p>
+          <p className="text-[#6B6B6B] mb-4">{t('otherQuestion')}</p>
           <a
             href="/contact"
-            className="inline-flex items-center gap-2 bg-[#F05A28] text-white px-6 py-3 rounded-lg font-semibold hover:bg-[#E04D1A] transition-colors duration-150"
+            className="inline-flex items-center gap-2 bg-[#F05A28] text-white px-6 py-3 rounded-lg font-semibold hover:bg-[#E04D1A] transition-colors duration-200"
           >
             {t('contactBtn')}
           </a>
