@@ -1,9 +1,8 @@
 'use client'
 
 import { useEffect, useState, useRef } from 'react'
-import { motion, useInView } from 'framer-motion'
 import { useTranslations } from 'next-intl'
-import { duration, easeOut } from '@/lib/motion-presets'
+import { useSectionActive } from '@/lib/motion-presets'
 import { accentCycle } from '@/lib/design-tokens'
 
 const stats = [
@@ -20,42 +19,51 @@ interface CounterProps {
   label: string
   color: string
   bgColor: string
+  /** When the parent section becomes active, start the counter. */
+  active: boolean
+  /** Staggered start so the numbers appear in sequence, not at once. */
+  startDelayMs: number
 }
 
-function Counter({ value, suffix, label, color, bgColor }: CounterProps) {
+/**
+ * Counter – uses rAF (no setInterval jitter) but no motion wrapper.
+ * The entrance scale/fade is CSS (see .stat-cell in globals.css); we
+ * only render the value itself via React state.
+ */
+function Counter({ value, suffix, label, color, bgColor, active, startDelayMs }: CounterProps) {
   const [count, setCount] = useState(0)
   const ref = useRef<HTMLDivElement>(null)
-  const isInView = useInView(ref, { once: true, amount: 0.3, margin: '0px 0px -10% 0px' })
 
   useEffect(() => {
-    if (!isInView || value === 0) return
+    if (!active) return
     let raf = 0
-    const start = performance.now()
-    const tick = (now: number) => {
-      const elapsed = now - start
-      const progress = Math.min(elapsed / 1500, 1)
-      const eased = 1 - Math.pow(1 - progress, 3)
-      setCount(Math.round(value * eased))
-      if (progress < 1) raf = requestAnimationFrame(tick)
+    let timeoutId: ReturnType<typeof setTimeout>
+    const begin = (timestamp: number) => {
+      const tick = (now: number) => {
+        const elapsed = now - beginTimestamp
+        const progress = Math.min(elapsed / 1500, 1)
+        const eased = 1 - Math.pow(1 - progress, 3)
+        setCount(Math.round(value * eased))
+        if (progress < 1) raf = requestAnimationFrame(tick)
+      }
+      beginTimestamp = timestamp
+      raf = requestAnimationFrame(tick)
     }
-    raf = requestAnimationFrame(tick)
-    return () => cancelAnimationFrame(raf)
-  }, [isInView, value])
+    let beginTimestamp = 0
+    timeoutId = setTimeout(() => begin(performance.now()), startDelayMs)
+    return () => {
+      clearTimeout(timeoutId)
+      cancelAnimationFrame(raf)
+    }
+  }, [active, value, startDelayMs])
 
   return (
-    <motion.div
-      ref={ref}
-      initial={{ opacity: 0, scale: 0.92 }}
-      whileInView={{ opacity: 1, scale: 1 }}
-      viewport={{ once: true }}
-      transition={{ duration: duration.normal, ease: easeOut }}
-      className="text-center"
-    >
+    <div ref={ref} className="stat-cell text-center">
       <div
         className="inline-flex items-baseline justify-center px-6 py-4 rounded-xl"
         style={{ backgroundColor: bgColor }}
       >
-        <span className="text-4xl md:text-5xl font-bold" style={{ color }}>
+        <span className="text-4xl md:text-5xl font-bold tabular-nums" style={{ color }}>
           {count}
         </span>
         <span className="text-3xl md:text-4xl font-bold" style={{ color }}>
@@ -65,15 +73,29 @@ function Counter({ value, suffix, label, color, bgColor }: CounterProps) {
       <p className="mt-3 text-sm md:text-base font-medium" style={{ color }}>
         {label}
       </p>
-    </motion.div>
+    </div>
   )
 }
 
 export function StatisticsSection() {
   const t = useTranslations('stats')
+  // Single shared observer for the whole section (was 5 before).
+  const sectionRef = useSectionActive<HTMLElement>({ threshold: 0.25 })
+  const [active, setActive] = useState(false)
+
+  // Bridge the observer attribute into a boolean prop that children can use.
+  useEffect(() => {
+    const el = sectionRef.current
+    if (!el) return
+    const update = () => setActive(el.dataset.active === 'true')
+    update()
+    const io = new MutationObserver(update)
+    io.observe(el, { attributes: true, attributeFilter: ['data-active'] })
+    return () => io.disconnect()
+  }, [sectionRef])
 
   return (
-    <section className="py-20 bg-white">
+    <section ref={sectionRef} className="py-20 bg-white stats-section">
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
           {stats.map((stat, index) => {
@@ -86,6 +108,8 @@ export function StatisticsSection() {
                 label={t(stat.statKey)}
                 color={accent.color}
                 bgColor={accent.bg}
+                active={active}
+                startDelayMs={index * 80}
               />
             )
           })}

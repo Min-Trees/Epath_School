@@ -8,7 +8,6 @@ import { TestimonialsSection } from '@/components/sections/testimonials-section'
 import { PartnersSection } from '@/components/sections/partners-section'
 import { FAQSection } from '@/components/sections/faq-section'
 import { CTABanner } from '@/components/sections/cta-banner'
-import { Chatbot } from '@/components/chatbot-simple'
 
 export default async function HomePage() {
   return (
@@ -22,7 +21,6 @@ export default async function HomePage() {
       <PartnersSection />
       <FAQSection />
       <CTABanner />
-      <Chatbot />
     </>
   )
 }

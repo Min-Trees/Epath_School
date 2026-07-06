@@ -2,6 +2,7 @@ import { NextIntlClientProvider } from 'next-intl'
 import { getMessages } from 'next-intl/server'
 import { Header } from '@/components/layout/header'
 import { Footer } from '@/components/layout/footer'
+import { ChatbotMount } from '@/components/chatbot-mount'
 
 interface LocaleLayoutProps {
   children: React.ReactNode
@@ -24,6 +25,12 @@ interface LocaleLayoutProps {
  * The main element is wrapped in a <Suspense> so the Header and
  * Footer can stream in / paint immediately while the page content
  * is still being prepared.
+ *
+ * ChatbotMount is rendered at the layout level (not inside page.tsx)
+ * so the floating chat bubble survives navigations without re-mount,
+ * and so it is lazy-loaded once instead of being part of every page's
+ * JS bundle. This is the main fix for the perceived "delay when
+ * switching pages".
  */
 export default async function LocaleLayout({
   children,
@@ -38,6 +45,7 @@ export default async function LocaleLayout({
         <Header />
         <main className="flex-1">{children}</main>
         <Footer locale={locale} />
+        <ChatbotMount />
       </div>
     </NextIntlClientProvider>
   )

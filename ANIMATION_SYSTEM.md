@@ -14,7 +14,6 @@ lib/animations/
 
 
 
-hellohello
 components/ui/
 ├── animate-on-scroll.tsx   # Scroll-triggered animations
 ├── animated-counter.tsx    # Counter animations

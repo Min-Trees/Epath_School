@@ -3,7 +3,7 @@
 import { motion } from 'framer-motion'
 import { useTranslations } from 'next-intl'
 import { ClipboardCheck, Map, Laptop, MessageCircle, Award } from 'lucide-react'
-import { duration, easeOut, inViewViewport, staggerContainer } from '@/lib/motion-presets'
+import { duration, easeOut, useSectionActive } from '@/lib/motion-presets'
 import { accentCycle } from '@/lib/design-tokens'
 
 const steps = [
@@ -14,34 +14,38 @@ const steps = [
   { number: 5, titleKey: 'achievement', descKey: 'achievementDesc', icon: Award },
 ]
 
-const stepVariants = {
-  hidden: { opacity: 0, y: 30 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: duration.slow, ease: easeOut },
-  },
-}
-
-const iconVariants = {
-  hidden: { scale: 0, rotate: -180 },
-  visible: {
-    scale: 1,
-    rotate: 0,
-    transition: { duration: duration.slow, ease: easeOut },
-  },
-}
-
+/**
+ * Step-model timeline – performance-aware rebuild.
+ *
+ * The previous version mounted a framer-motion component for every
+ * connector segment and inside every card, totalling 30+ motion
+ * components on screen at once. Re-rendering any of them during
+ * scroll caused jank.
+ *
+ * New approach:
+ *   - 1 motion wrapper per step (icon + card) – entrances only.
+ *   - Connector segments are PURE CSS (`step-connector` class).
+ *     Their grow-in animation runs on the compositor thread via
+ *     `transform: scaleX` and is started by IntersectionObserver
+ *     toggling `data-active` on the section. Zero JS while playing.
+ *   - Card hover uses CSS transform (no framer-motion wrapper).
+ *   - Mobile uses an inline `flex` timeline with a CSS scaleY reveal.
+ */
 export function StepModelSection() {
   const t = useTranslations('steps')
+  const sectionRef = useSectionActive<HTMLElement>({ threshold: 0.15 })
 
   return (
-    <section className="py-20 surface-alt overflow-hidden">
+    <section
+      ref={sectionRef}
+      id="step-timeline"
+      className="py-20 surface-alt overflow-hidden step-section"
+    >
       <div className="container mx-auto px-4">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={inViewViewport}
+          viewport={{ once: true, amount: 0.4 }}
           transition={{ duration: duration.normal, ease: easeOut }}
           className="text-center mb-16"
         >
@@ -54,143 +58,140 @@ export function StepModelSection() {
         </motion.div>
 
         <div className="relative">
-          {/* Desktop Timeline */}
+          {/* Desktop timeline */}
           <div className="hidden lg:block">
-            <motion.div
-              className="absolute top-20 left-0 right-0 h-1 bg-gradient-to-r from-[#3A53A3] via-[#8BC53F] to-[#F05A28]"
-              initial={{ scaleX: 0 }}
-              whileInView={{ scaleX: 1 }}
-              viewport={inViewViewport}
-              transition={{ duration: duration.slower, ease: easeOut }}
-              style={{ transformOrigin: 'left' }}
-            />
-
-            <motion.div
-              variants={staggerContainer(0.1)}
-              initial="hidden"
-              whileInView="visible"
-              viewport={inViewViewport}
-              className="grid grid-cols-5 gap-4"
-            >
+            <div className="step-grid">
               {steps.map((step, idx) => {
                 const accent = accentCycle[idx % accentCycle.length]
+                const isLast = idx === steps.length - 1
                 return (
-                  <motion.div
-                    key={step.number}
-                    variants={stepVariants}
-                    className="relative pt-16"
-                  >
+                  <div key={step.number} className="step-col">
+                    {!isLast && (
+                      <span
+                        className="step-connector"
+                        style={
+                          {
+                            '--from': accent.color,
+                            '--to': accentCycle[(idx + 1) % accentCycle.length].color,
+                            '--delay': `${idx * 0.18}s`,
+                          } as React.CSSProperties
+                        }
+                      />
+                    )}
+
                     <motion.div
-                      variants={iconVariants}
-                      className="relative z-10 flex justify-center mb-6"
+                      initial={{ opacity: 0, y: 24 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true, amount: 0.3 }}
+                      transition={{
+                        duration: duration.slow,
+                        ease: easeOut,
+                        delay: idx * 0.12,
+                      }}
+                      className="step-icon-wrap"
+                      style={{ backgroundColor: accent.color }}
                     >
-                      <motion.div
-                        whileHover={{ scale: 1.1 }}
-                        transition={{ duration: duration.fast, ease: easeOut }}
-                        className="w-16 h-16 rounded-full flex items-center justify-center border-4 border-white shadow-lg"
-                        style={{ backgroundColor: accent.color }}
-                      >
-                        <step.icon className="w-8 h-8 text-white" />
-                      </motion.div>
+                      <step.icon className="w-8 h-8 text-white" />
                     </motion.div>
 
                     <motion.div
-                      whileHover={{ y: -5, scale: 1.02 }}
-                      transition={{ duration: duration.fast, ease: easeOut }}
-                      className="rounded-xl p-6 text-center transition-all duration-200 hover:shadow-lg"
+                      initial={{ opacity: 0, y: 20 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true, amount: 0.3 }}
+                      transition={{
+                        duration: duration.slow,
+                        ease: easeOut,
+                        delay: idx * 0.12 + 0.1,
+                      }}
+                      className="step-card"
                       style={{ backgroundColor: accent.bg }}
                     >
                       <div className="text-4xl font-bold mb-2" style={{ color: accent.color }}>
                         {step.number}
                       </div>
-                      <div
-                        className="font-bold text-lg mb-1"
-                        style={{ color: accent.color }}
-                      >
+                      <div className="font-bold text-lg mb-1" style={{ color: accent.color }}>
                         {t(step.titleKey)}
                       </div>
                       <p className="text-sm" style={{ color: accent.color }}>
                         {t(step.descKey)}
                       </p>
                     </motion.div>
-                  </motion.div>
+                  </div>
                 )
               })}
-            </motion.div>
+            </div>
           </div>
 
-          {/* Mobile Timeline */}
+          {/* Mobile timeline */}
           <div className="lg:hidden">
-            <motion.div
-              className="absolute left-3 top-0 bottom-0 w-1 bg-gradient-to-b from-[#3A53A3] via-[#8BC53F] to-[#F05A28] rounded-full"
-              initial={{ scaleY: 0, height: 0 }}
-              whileInView={{ scaleY: 1, height: '100%' }}
-              viewport={inViewViewport}
-              transition={{ duration: duration.slower, ease: easeOut }}
-              style={{ transformOrigin: 'top' }}
-            />
-
-            <motion.div
-              variants={staggerContainer(0.1)}
-              initial="hidden"
-              whileInView="visible"
-              viewport={inViewViewport}
-              className="relative pl-8"
-            >
-              <div className="space-y-6">
-                {steps.map((step, idx) => {
-                  const accent = accentCycle[idx % accentCycle.length]
-                  return (
+            <div className="step-mobile-rail" aria-hidden />
+            <div className="step-mobile-grid">
+              {steps.map((step, idx) => {
+                const accent = accentCycle[idx % accentCycle.length]
+                const isLast = idx === steps.length - 1
+                return (
+                  <div key={step.number} className="step-mobile-row">
+                    {!isLast && (
+                      <span
+                        className="step-mobile-connector"
+                        style={
+                          {
+                            '--color': accent.color,
+                            '--delay': `${idx * 0.18}s`,
+                          } as React.CSSProperties
+                        }
+                      />
+                    )}
                     <motion.div
-                      key={step.number}
-                      variants={stepVariants}
-                      className="relative"
+                      initial={{ opacity: 0, scale: 0.6 }}
+                      whileInView={{ opacity: 1, scale: 1 }}
+                      viewport={{ once: true, amount: 0.4 }}
+                      transition={{
+                        duration: duration.normal,
+                        ease: easeOut,
+                        delay: idx * 0.12,
+                      }}
+                      className="step-icon-mobile"
+                      style={{ backgroundColor: accent.color }}
                     >
-                      <motion.div
-                        variants={iconVariants}
-                        className="absolute -left-5 top-2 w-10 h-10 rounded-full flex items-center justify-center border-4 border-white shadow-md"
-                        style={{ backgroundColor: accent.color }}
-                      >
-                        <step.icon className="w-5 h-5 text-white" />
-                      </motion.div>
-
-                      <div
-                        className="ml-4 rounded-xl p-4 transition-all duration-200 hover:shadow-lg"
-                        style={{ backgroundColor: accent.bg }}
-                      >
-                        <div className="flex items-center gap-3 mb-2">
-                          <span
-                            className="text-2xl font-bold"
-                            style={{ color: accent.color }}
-                          >
-                            {step.number}
-                          </span>
-                          <div
-                            className="font-bold"
-                            style={{ color: accent.color }}
-                          >
-                            {t(step.titleKey)}
-                          </div>
-                        </div>
-                        <p className="text-sm" style={{ color: accent.color }}>
-                          {t(step.descKey)}
-                        </p>
-                      </div>
+                      <step.icon className="w-5 h-5 text-white" />
                     </motion.div>
-                  )
-                })}
-              </div>
-            </motion.div>
+
+                    <motion.div
+                      initial={{ opacity: 0, x: 16 }}
+                      whileInView={{ opacity: 1, x: 0 }}
+                      viewport={{ once: true, amount: 0.3 }}
+                      transition={{
+                        duration: duration.normal,
+                        ease: easeOut,
+                        delay: idx * 0.12 + 0.1,
+                      }}
+                      className="step-card-mobile"
+                      style={{ backgroundColor: accent.bg }}
+                    >
+                      <div className="flex items-center gap-3 mb-2">
+                        <span
+                          className="text-2xl font-bold"
+                          style={{ color: accent.color }}
+                        >
+                          {step.number}
+                        </span>
+                        <div className="font-bold" style={{ color: accent.color }}>
+                          {t(step.titleKey)}
+                        </div>
+                      </div>
+                      <p className="text-sm" style={{ color: accent.color }}>
+                        {t(step.descKey)}
+                      </p>
+                    </motion.div>
+                  </div>
+                )
+              })}
+            </div>
           </div>
         </div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={inViewViewport}
-          transition={{ duration: duration.normal, delay: 0.3, ease: easeOut }}
-          className="text-center mt-16"
-        >
+        <div className="text-center mt-16">
           <div className="inline-flex items-center gap-4 bg-white rounded-xl p-6 shadow-sm">
             <div className="text-right">
               <p className="text-[#231F20] font-medium">{t('ctaText')}</p>
@@ -198,12 +199,12 @@ export function StepModelSection() {
             </div>
             <a
               href="/admissions"
-              className="bg-[#F05A28] text-white px-6 py-3 rounded-lg font-semibold hover:bg-[#E04D1A] transition-colors duration-200 whitespace-nowrap"
+              className="inline-flex items-center justify-center bg-[#F05A28] text-white px-6 py-3 rounded-lg font-semibold transition-colors duration-200 whitespace-nowrap hover:bg-[#E04D1A] hover:-translate-y-0.5"
             >
               {t('register')}
             </a>
           </div>
-        </motion.div>
+        </div>
       </div>
     </section>
   )

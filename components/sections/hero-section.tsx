@@ -1,52 +1,62 @@
 'use client'
 
 /**
- * HeroSection - EPath Landing Hero
- * Smooth text animations with staggered entrance
- * Unified with motion-presets for consistent timing.
+ * HeroSection – performance-tuned rebuild.
+ *
+ * Was: 12+ framer-motion instances (one per word, per subtitle, per
+ * pulse ring...) all ticking from JS.
+ *
+ * Now:
+ *   - All entrance + loop animations are CSS keyframes.
+ *   - Video background stays the same (single DOM <video>).
+ *   - Title words are styled spans; CSS handles word-by-word reveal.
+ *   - Pulse rings are CSS keyframes that auto-pause if reduced-motion
+ *     is requested.
  */
 
-import { motion } from 'framer-motion'
+import { useEffect, useRef } from 'react'
 import { useTranslations } from 'next-intl'
 import { ArrowRight, ChevronDown } from 'lucide-react'
 import { useParams } from 'next/navigation'
-import { duration, easeOut, easeStandard } from '@/lib/motion-presets'
 
 const TIMING = {
-  titleStart: 0.2,
-  titleWordDelay: 0.1,
-  subtitleDelay: 0.9,
-  descriptionDelay: 1.2,
-  ctaDelay: 1.5,
-  scrollDelay: 1.8,
-}
-
-const wordVariants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: (i: number) => ({
-    opacity: 1,
-    y: 0,
-    transition: {
-      delay: TIMING.titleStart + i * TIMING.titleWordDelay,
-      duration: duration.slow,
-      ease: easeOut,
-    },
-  }),
+  titleStart: 0.2,        // seconds, before first word
+  titleWordStep: 0.08,    // delay between words
+  subtitleStart: 0.9,
+  descriptionStart: 1.15,
+  ctaStart: 1.4,
+  scrollStart: 1.7,
 }
 
 export function HeroSection() {
   const t = useTranslations('hero')
   const params = useParams()
   const locale = (params.locale as string) || 'vi'
+  const sectionRef = useRef<HTMLElement>(null)
+
+  // Hero is the first thing on the page; we don't need an IntersectionObserver.
+  // Just flip the CSS class on mount so the CSS keyframes fire exactly once.
+  useEffect(() => {
+    const el = sectionRef.current
+    if (!el) return
+    // Defer one frame so the initial paint is the "hidden" state, then trigger.
+    const id = requestAnimationFrame(() => el.classList.add('is-visible'))
+    return () => cancelAnimationFrame(id)
+  }, [])
 
   const welcomeText = t('welcome')
   const titleText = t('title')
   const subtitleText = t('subtitle')
   const descriptionText = t('description')
 
+  // Total delay between first word of h1 and last word of h2 = both
+  // word groups share the same staggered start.
+  const welcomeWords = welcomeText.split(' ')
+  const titleWords = titleText.split(' ')
+
   return (
-    <section className="relative min-h-screen overflow-hidden">
-      {/* Video Background - Simple, no delay */}
+    <section ref={sectionRef} className="relative min-h-screen overflow-hidden hero-section">
+      {/* Video background */}
       <div className="absolute inset-0">
         <video
           autoPlay
@@ -67,117 +77,77 @@ export function HeroSection() {
 
       <div className="container mx-auto px-4 relative z-10 flex items-center justify-center min-h-screen">
         <div className="text-center max-w-4xl">
-          <motion.h1
-            variants={wordVariants}
-            initial="hidden"
-            animate="visible"
-            className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-4"
-          >
-            {welcomeText.split(' ').map((word, i) => (
-              <motion.span
-                key={`${welcomeText}-${i}`}
-                custom={i}
-                variants={wordVariants}
-                className="inline-block mr-[0.25em]"
+          <h1 className="hero-title text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-4">
+            {welcomeWords.map((word, i) => (
+              <span
+                key={`w-${i}`}
+                className="inline-block mr-[0.25em] hero-word"
+                style={
+                  {
+                    ['--word-delay' as string]: `${TIMING.titleStart + i * TIMING.titleWordStep}s`,
+                  } as React.CSSProperties
+                }
               >
                 {word}
-              </motion.span>
+              </span>
             ))}
-          </motion.h1>
+          </h1>
 
-          <motion.h1
-            variants={wordVariants}
-            initial="hidden"
-            animate="visible"
-            className="text-4xl md:text-5xl lg:text-6xl font-bold text-[#8BC53F] mb-8"
-          >
-            {titleText.split(' ').map((word, i) => (
-              <motion.span
-                key={`${titleText}-${i}`}
-                custom={welcomeText.split(' ').length + i}
-                variants={wordVariants}
-                className="inline-block mr-[0.25em]"
+          <h1 className="hero-title text-4xl md:text-5xl lg:text-6xl font-bold text-[#8BC53F] mb-8">
+            {titleWords.map((word, i) => (
+              <span
+                key={`t-${i}`}
+                className="inline-block mr-[0.25em] hero-word hero-word--green"
+                style={
+                  {
+                    ['--word-delay' as string]: `${TIMING.titleStart + (welcomeWords.length + i) * TIMING.titleWordStep}s`,
+                  } as React.CSSProperties
+                }
               >
                 {word}
-              </motion.span>
+              </span>
             ))}
-          </motion.h1>
+          </h1>
 
-          <motion.p
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{
-              delay: TIMING.subtitleDelay,
-              duration: duration.normal,
-              ease: easeOut,
-            }}
-            className="text-lg md:text-xl lg:text-2xl text-white/90 font-medium leading-relaxed mb-4"
+          <p
+            className="hero-subtitle text-lg md:text-xl lg:text-2xl text-white/90 font-medium leading-relaxed mb-4"
+            style={{ ['--enter-delay' as string]: `${TIMING.subtitleStart}s` } as React.CSSProperties}
           >
             {subtitleText}
-          </motion.p>
+          </p>
 
-          <motion.p
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{
-              delay: TIMING.descriptionDelay,
-              duration: duration.normal,
-              ease: easeOut,
-            }}
-            className="text-base md:text-lg text-white/80 leading-relaxed max-w-2xl mx-auto"
+          <p
+            className="hero-subtitle text-base md:text-lg text-white/80 leading-relaxed max-w-2xl mx-auto"
+            style={{ ['--enter-delay' as string]: `${TIMING.descriptionStart}s` } as React.CSSProperties}
           >
             {descriptionText}
-          </motion.p>
+          </p>
 
-          <motion.a
+          <a
             href={`/${locale}/about`}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{
-              delay: TIMING.ctaDelay,
-              duration: duration.normal,
-              ease: easeOut,
-            }}
-            whileHover={{ scale: 1.04, y: -3 }}
-            whileTap={{ scale: 0.97 }}
-            className="inline-flex items-center gap-3 bg-[#F05A28] hover:bg-[#E04D1A] text-white px-10 py-4 rounded-full text-lg font-medium transition-colors duration-200 shadow-lg hover:shadow-xl mt-10"
+            className="hero-cta relative inline-flex items-center gap-3 bg-[#F05A28] hover:bg-[#E04D1A] text-white px-10 py-4 rounded-full text-lg font-medium shadow-lg hover:shadow-xl mt-10"
+            style={{ ['--enter-delay' as string]: `${TIMING.ctaStart}s` } as React.CSSProperties}
           >
-            {t('cta')}
-            <motion.span
-              animate={{ x: [0, 6, 0] }}
-              transition={{
-                duration: 1.5,
-                repeat: Infinity,
-                ease: 'easeInOut',
-                repeatDelay: 0.5,
-              }}
-              className="inline-flex"
-            >
-              <ArrowRight className="w-5 h-5" />
-            </motion.span>
-          </motion.a>
+            {/* Pulse rings – CSS only, paused via reduced-motion. */}
+            <span aria-hidden className="hero-pulse hero-pulse--solid" />
+            <span aria-hidden className="hero-pulse hero-pulse--ring" />
+            <span className="relative z-10 inline-flex items-center gap-3">
+              {t('cta')}
+              <span className="hero-arrow inline-flex">
+                <ArrowRight className="w-5 h-5" />
+              </span>
+            </span>
+          </a>
         </div>
       </div>
 
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{
-          delay: TIMING.scrollDelay,
-          duration: duration.normal,
-          ease: easeStandard,
-        }}
-        className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20"
+      <div
+        className="hero-scroll-indicator absolute bottom-8 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-2"
+        style={{ ['--enter-delay' as string]: `${TIMING.scrollStart}s` } as React.CSSProperties}
       >
-        <motion.div
-          animate={{ y: [0, 8, 0] }}
-          transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
-          className="flex flex-col items-center gap-2"
-        >
-          <span className="text-white/50 text-xs uppercase tracking-widest">Scroll</span>
-          <ChevronDown className="w-6 h-6 text-white/60" />
-        </motion.div>
-      </motion.div>
+        <span className="text-white/50 text-xs uppercase tracking-widest">Scroll</span>
+        <ChevronDown className="hero-bounce w-6 h-6 text-white/60" />
+      </div>
     </section>
   )
 }

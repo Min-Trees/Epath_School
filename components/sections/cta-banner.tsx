@@ -1,57 +1,77 @@
 'use client'
 
+import { useEffect, useRef } from 'react'
 import { motion } from 'framer-motion'
 import { useTranslations } from 'next-intl'
 import { ArrowRight, Sparkles } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { duration, easeOut, inViewViewport } from '@/lib/motion-presets'
+import { duration, easeOut } from '@/lib/motion-presets'
 import { semanticColors } from '@/lib/design-tokens'
 
+/**
+ * CTABanner – performance-tuned version.
+ *
+ * Old problems:
+ *   - 5 `motion.div` rendered as `blur-3xl` (96px+ blur radius) each
+ *     running an infinite x/y loop independently.
+ *     -> 5 separate compositor layers, 5 GPU paint passes per frame.
+ *
+ * Optimisations applied:
+ *   - Down to 3 orbs (still visually rich, half the GPU work).
+ *   - Blur radius dropped from `blur-3xl` (64px) to `blur-2xl` (40px).
+ *   - Animations PAUSE when the section is off-screen via
+ *     `animation-play-state: paused` toggled by IntersectionObserver,
+ *     so a user scrolling past at the bottom of the page drops these
+ *     layers to zero GPU cost.
+ *   - Orbs use the CSS `cta-orb` class (see globals.css) so animations
+ *     run on the compositor thread at native 60 fps, no JS overhead.
+ *   - `prefers-reduced-motion` users get static gradients instead.
+ */
 export function CTABanner() {
   const t = useTranslations('cta')
+  const orbContainerRef = useRef<HTMLDivElement>(null)
+
+  // IntersectionObserver toggles a `data-active` attribute the CSS uses
+  // to play / pause the orb animations.
+  useEffect(() => {
+    const el = orbContainerRef.current
+    if (!el || typeof IntersectionObserver === 'undefined') return
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          el.dataset.active = entry.isIntersecting ? 'true' : 'false'
+        }
+      },
+      { rootMargin: '200px 0px' } // start a bit early so the orbs are moving as user scrolls to them
+    )
+    io.observe(el)
+    return () => io.disconnect()
+  }, [])
 
   return (
     <section
-      className="py-16 relative overflow-hidden"
+      className="cta-banner py-16 relative overflow-hidden"
       style={{
         background: `linear-gradient(135deg, ${semanticColors.primary} 0%, ${semanticColors.primaryDark} 100%)`,
       }}
     >
-      {/* Animated Background Elements */}
-      <div className="absolute inset-0 opacity-10 pointer-events-none">
-        {[...Array(5)].map((_, i) => (
-          <motion.div
-            key={i}
-            className="absolute w-64 h-64 bg-white rounded-full blur-3xl"
-            style={{
-              left: `${20 + i * 20}%`,
-              top: `${10 + (i % 3) * 30}%`,
-            }}
-            animate={{
-              x: [0, 30, 0],
-              y: [0, -20, 0],
-            }}
-            transition={{
-              duration: 6 + i,
-              repeat: Infinity,
-              ease: 'easeInOut',
-            }}
-          />
-        ))}
+      {/* 3 CSS-driven orbs, paused when off-screen */}
+      <div
+        ref={orbContainerRef}
+        data-active="true"
+        aria-hidden
+        className="absolute inset-0 pointer-events-none"
+      >
+        <span className="cta-orb cta-orb--1" />
+        <span className="cta-orb cta-orb--2" />
+        <span className="cta-orb cta-orb--3" />
       </div>
 
       <div className="container mx-auto px-4 relative z-10">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={inViewViewport}
-          transition={{ duration: duration.normal, ease: easeOut }}
-          className="text-center"
-        >
+        <div className="text-center">
           <motion.div
             initial={{ scale: 0, rotate: -180 }}
             whileInView={{ scale: 1, rotate: 0 }}
-            viewport={inViewViewport}
+            viewport={{ once: true, amount: 0.4 }}
             transition={{ duration: duration.slow, ease: easeOut }}
             className="inline-flex items-center justify-center w-16 h-16 bg-white/20 rounded-full mb-6"
           >
@@ -64,39 +84,18 @@ export function CTABanner() {
           <p className="text-white/80 text-lg mb-8 max-w-2xl mx-auto">
             {t('subtitle')}
           </p>
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={inViewViewport}
-            transition={{ duration: duration.normal, delay: 0.1, ease: easeOut }}
-            className="flex flex-wrap justify-center gap-4"
-          >
-            <motion.div whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }}>
-              <Button
-                size="lg"
-                className="bg-[#F05A28] hover:bg-[#E04D1A] text-white text-lg px-8 h-14 shadow-lg"
-              >
-                {t('primary')}
-                <motion.span
-                  animate={{ x: [0, 5, 0] }}
-                  transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
-                  className="ml-2 inline-flex"
-                >
-                  <ArrowRight className="w-5 h-5" />
-                </motion.span>
-              </Button>
-            </motion.div>
-            <motion.div whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }}>
-              <Button
-                size="lg"
-                variant="outline"
-                className="border-white text-white hover:bg-white hover:text-[#3A53A3] text-lg px-8 h-14"
-              >
-                {t('secondary')}
-              </Button>
-            </motion.div>
-          </motion.div>
-        </motion.div>
+          <div className="flex flex-wrap justify-center gap-4">
+            <a href="/admissions" className="cta-btn-primary">
+              {t('primary')}
+              <span className="ml-2 cta-arrow-anim">
+                <ArrowRight className="w-5 h-5" />
+              </span>
+            </a>
+            <a href="/contact" className="cta-btn-outline">
+              {t('secondary')}
+            </a>
+          </div>
+        </div>
       </div>
     </section>
   )

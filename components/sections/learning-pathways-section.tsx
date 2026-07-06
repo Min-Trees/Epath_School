@@ -1,11 +1,10 @@
 'use client'
 
-import { motion } from 'framer-motion'
 import { useTranslations } from 'next-intl'
 import Link from 'next/link'
 import { ArrowRight, Sprout, Book, GraduationCap, Trophy } from 'lucide-react'
 import { useParams } from 'next/navigation'
-import { duration, easeOut, inViewViewport } from '@/lib/motion-presets'
+import { useSectionActive } from '@/lib/motion-presets'
 import { accentCycle } from '@/lib/design-tokens'
 
 const pathways = [
@@ -41,62 +40,78 @@ const programData: Record<
   },
 }
 
+/**
+ * Performance rebuild:
+ *   - All framer-motion wrappers removed.
+ *   - Card lift / icon swap / arrow slide handled in pure CSS.
+ *   - IntersectionObserver toggles `data-active` so the stagger fade-in
+ *     runs on the compositor (no JS per-frame).
+ */
 export function LearningPathwaysSection() {
   const t = useTranslations('pathways')
   const tNav = useTranslations('nav')
   const tLevels = useTranslations('programs.levels')
   const params = useParams()
   const locale = (params.locale as string) || 'vi'
+  const sectionRef = useSectionActive<HTMLElement>({ threshold: 0.1 })
 
   return (
-    <section className="py-20 bg-white">
+    <section ref={sectionRef} className="pathways-section py-20 bg-white">
       <div className="container mx-auto px-4">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={inViewViewport}
-          transition={{ duration: duration.normal, ease: easeOut }}
-          className="text-center mb-16"
-        >
+        <div className="text-center mb-16 pathways-header">
           <h2 className="text-3xl md:text-4xl font-bold text-[#231F20] mb-4">
             {t('title')}
           </h2>
           <p className="text-lg text-[#6B6B6B] max-w-2xl mx-auto">
             {t('subtitle')}
           </p>
-        </motion.div>
+        </div>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
           {pathways.map((pathway, index) => {
             const accent = accentCycle[index % accentCycle.length]
             return (
-              <motion.div
+              <div
                 key={pathway.id}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={inViewViewport}
-                transition={{ duration: duration.normal, delay: index * 0.08, ease: easeOut }}
+                className="pathway-card-wrap"
+                style={{ ['--reveal-delay' as string]: `${index * 0.08}s` }}
               >
                 <Link
                   href={`/${locale}/programs?level=${pathway.id}`}
                   className="block h-full group"
                 >
                   <div
-                    className="h-full rounded-2xl p-6 border-2 transition-all duration-200 hover:shadow-xl hover:-translate-y-2 relative overflow-hidden"
-                    style={{ backgroundColor: accent.bg, borderColor: accent.color }}
+                    className="pathway-card h-full rounded-2xl p-6 border-2 relative overflow-hidden"
+                    style={
+                      {
+                        backgroundColor: accent.bg,
+                        borderColor: accent.color,
+                        ['--accent' as string]: accent.color,
+                      } as React.CSSProperties
+                    }
                   >
-                    <div className="absolute top-4 right-4 opacity-10 group-hover:opacity-20 transition-opacity duration-200">
+                    {/* Watermark icon */}
+                    <div className="pathway-watermark absolute top-4 right-4">
                       <pathway.icon className="w-24 h-24" style={{ color: accent.color }} />
                     </div>
 
-                    <div
-                      className="w-16 h-16 rounded-xl flex items-center justify-center mb-4"
-                      style={{ backgroundColor: accent.color }}
-                    >
-                      <pathway.icon className="w-8 h-8 text-white" />
+                    {/* Icon badge with cross-fade (default vs hover) */}
+                    <div className="relative w-16 h-16 mb-4">
+                      <div className="pathway-badge absolute inset-0 rounded-xl flex items-center justify-center">
+                        <pathway.icon
+                          className="w-8 h-8 pathway-icon-default"
+                          style={{ color: accent.color }}
+                        />
+                      </div>
+                      <div className="pathway-badge-hover absolute inset-0 rounded-xl flex items-center justify-center pointer-events-none">
+                        <pathway.icon
+                          className="w-8 h-8 pathway-icon-hover"
+                          style={{ color: accent.color }}
+                        />
+                      </div>
                     </div>
 
-                    <div className="mb-2">
+                    <div className="mb-2 relative">
                       <span className="text-2xl font-bold" style={{ color: accent.color }}>
                         {tLevels(pathway.levelKey as 'kindergarten' | 'elementary' | 'middle' | 'high')}
                       </span>
@@ -133,23 +148,17 @@ export function LearningPathwaysSection() {
                       </div>
                     </div>
 
-                    <div className="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                    <div className="pathway-arrow absolute bottom-4 right-4">
                       <ArrowRight className="w-6 h-6" style={{ color: accent.color }} />
                     </div>
                   </div>
                 </Link>
-              </motion.div>
+              </div>
             )
           })}
         </div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={inViewViewport}
-          transition={{ duration: duration.normal, delay: 0.3, ease: easeOut }}
-          className="text-center mt-12"
-        >
+        <div className="text-center mt-12">
           <Link
             href={`/${locale}/programs`}
             className="inline-flex items-center gap-2 bg-[#F05A28] text-white px-8 py-4 rounded-lg font-semibold hover:bg-[#E04D1A] transition-colors duration-200"
@@ -157,7 +166,7 @@ export function LearningPathwaysSection() {
             {t('viewAll')}
             <ArrowRight className="w-5 h-5" />
           </Link>
-        </motion.div>
+        </div>
       </div>
     </section>
   )

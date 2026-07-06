@@ -2,12 +2,13 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { 
-  MessageCircle, X, Send, Bot, User, ChevronRight, GraduationCap, 
-  DollarSign, Clock, Award, Phone, Mail, Check, ThumbsUp, ThumbsDown, 
-  Sparkles, FileText, Users, Globe, BookOpen, MapPin, Calendar, 
-  Loader2, Building2, Heart, TrendingUp
+import {
+  MessageCircle, X, Send, Bot, User, ChevronRight, GraduationCap,
+  DollarSign, Clock, Award, Phone, Mail, Check, ThumbsUp, ThumbsDown,
+  Sparkles, FileText, Users, Globe, BookOpen, MapPin, Calendar,
+  Loader2, Building2, Heart, TrendingUp, Maximize2
 } from 'lucide-react'
+import { cn } from '@/lib/utils'
 
 interface Message {
   id: string
@@ -267,7 +268,12 @@ export function Chatbot() {
   const [selectedTopic, setSelectedTopic] = useState<TopicQA | null>(null)
   const [contactForm, setContactForm] = useState({ name: '', phone: '', email: '', note: '' })
   const [isSubmitting, setIsSubmitting] = useState(false)
+  // Mobile experience: track whether the on-screen keyboard is open,
+  // and use visualViewport height so the chat panel never gets clipped
+  // by the iOS keyboard (a common cause of "can't see the input" bugs).
+  const [keyboardOpen, setKeyboardOpen] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -278,6 +284,22 @@ export function Chatbot() {
       scrollToBottom()
     }
   }, [messages, isOpen])
+
+  // Track on-screen keyboard via the visualViewport API so the chat panel
+  // shrinks to fit, and the input stays visible above the keyboard.
+  useEffect(() => {
+    if (typeof window === 'undefined' || !window.visualViewport) return
+    const vv = window.visualViewport
+    const handleResize = () => {
+      // The keyboard is "open" when the visual viewport shrinks by a noticeable amount.
+      // Using a small threshold avoids false positives on desktop URL bar changes.
+      const heightDiff = window.innerHeight - vv.height
+      setKeyboardOpen(heightDiff > 150)
+    }
+    vv.addEventListener('resize', handleResize)
+    handleResize()
+    return () => vv.removeEventListener('resize', handleResize)
+  }, [])
 
   const addMessage = (role: 'user' | 'assistant', content: string, showRating = false) => {
     const newMessage: Message = {
@@ -442,13 +464,17 @@ export function Chatbot() {
 
   return (
     <>
-      {/* Chat Button */}
+      {/* Chat Button – respects iOS safe-area so the bubble isn't hidden
+          behind the home indicator on notched devices.
+          z-[70] keeps it above the header (z-60) so the floating
+          launch button is always reachable. */}
       <motion.button
         initial={{ scale: 0 }}
         animate={{ scale: 1 }}
         transition={{ delay: 1, type: 'spring', stiffness: 200 }}
         onClick={() => setIsOpen(!isOpen)}
-        className="fixed bottom-6 right-6 z-50 w-16 h-16 bg-gradient-to-br from-[#3A53A3] to-[#2E4389] rounded-full shadow-xl flex items-center justify-center hover:shadow-2xl transition-shadow"
+        className="fixed bottom-6 right-4 sm:right-6 z-[70] w-14 h-14 sm:w-16 sm:h-16 bg-gradient-to-br from-[#3A53A3] to-[#2E4389] rounded-full shadow-xl flex items-center justify-center hover:shadow-2xl transition-shadow"
+        style={{ marginBottom: 'env(safe-area-inset-bottom, 0px)' }}
         aria-label="Open chat"
       >
         <AnimatePresence mode="wait">
@@ -485,7 +511,12 @@ export function Chatbot() {
         )}
       </motion.button>
 
-      {/* Chat Window */}
+      {/* Chat Window
+          - Mobile (default): full-screen sheet pinned to bottom, height uses
+            `dvh` so the iOS URL bar / keyboard don't clip the input.
+          - Desktop (sm+): floating 420 x 650px panel anchored bottom-right.
+          - When the keyboard is detected we anchor the panel to the viewport
+            top + safe area so nothing is hidden. */}
       <AnimatePresence>
         {isOpen && (
           <motion.div
@@ -493,31 +524,51 @@ export function Chatbot() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
             transition={{ duration: 0.3 }}
-            className="fixed bottom-24 right-6 z-50 w-[90vw] sm:w-[420px] h-[75vh] sm:h-[650px] bg-white rounded-2xl shadow-2xl flex flex-col overflow-hidden border border-[#3A53A3]/20"
+            style={
+              keyboardOpen
+                ? { top: 8, bottom: 'auto' }
+                : undefined
+            }
+            className={cn(
+              'fixed z-[70] bg-white rounded-2xl shadow-2xl flex flex-col overflow-hidden border border-[#3A53A3]/20',
+              // Mobile fullscreen sheet
+              'inset-x-0 bottom-0 sm:inset-auto',
+              'h-[100dvh] sm:h-auto sm:w-[420px]',
+              keyboardOpen ? 'sm:h-[650px]' : 'sm:h-[650px]',
+              'sm:bottom-24 sm:right-6 sm:rounded-2xl'
+            )}
           >
             {/* Header */}
-            <div className="bg-gradient-to-r from-[#3A53A3] to-[#2E4389] p-4 flex items-center gap-3">
+            <div className="bg-gradient-to-r from-[#3A53A3] to-[#2E4389] p-3 sm:p-4 flex items-center gap-3 shrink-0">
               {chatStep !== 'main' && (
-                <button 
+                <button
                   onClick={handleBackToMain}
                   className="text-white/80 hover:text-white transition-colors"
+                  aria-label="Back to main"
                 >
                   <ChevronRight className="w-5 h-5 rotate-180" />
                 </button>
               )}
-              <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
-                <Bot className="w-7 h-7 text-white" />
+              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-white/20 rounded-full flex items-center justify-center shrink-0">
+                <Bot className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
               </div>
-              <div className="flex-1">
-                <h3 className="text-white font-semibold text-lg">EPath Assistant</h3>
-                <p className="text-white/80 text-sm">
+              <div className="flex-1 min-w-0">
+                <h3 className="text-white font-semibold text-base sm:text-lg truncate">EPath Assistant</h3>
+                <p className="text-white/80 text-xs sm:text-sm truncate">
                   {chatStep === 'contact' ? 'Đăng ký tư vấn' : 'Tư vấn giáo dục 24/7'}
                 </p>
               </div>
-              <div className="flex items-center gap-1">
+              <div className="hidden sm:flex items-center gap-1 shrink-0">
                 <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
                 <span className="text-white/80 text-xs">Online</span>
               </div>
+              <button
+                onClick={() => setIsOpen(false)}
+                className="sm:hidden text-white/90 hover:text-white p-1 -mr-1 shrink-0"
+                aria-label="Close chat"
+              >
+                <X className="w-5 h-5" />
+              </button>
             </div>
 
             {/* Messages */}
@@ -740,30 +791,39 @@ export function Chatbot() {
               </div>
             )}
 
-            {/* Input */}
-            <div className="p-4 bg-white border-t border-[#3A53A3]/20">
+            {/* Input – `pb-safe` keeps the bar above the iPhone home indicator. */}
+            <div
+              className="p-3 sm:p-4 bg-white border-t border-[#3A53A3]/20"
+              style={{ paddingBottom: 'calc(0.75rem + env(safe-area-inset-bottom, 0px))' }}
+            >
               {chatStep !== 'contact' && (
                 <div className="flex gap-2">
                   <input
+                    ref={inputRef}
                     type="text"
                     value={inputValue}
                     onChange={(e) => setInputValue(e.target.value)}
                     onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+                    onFocus={() => {
+                      // Let the layout settle first, then ensure the latest
+                      // message is visible above the keyboard.
+                      setTimeout(scrollToBottom, 100)
+                    }}
                     placeholder="Nhập câu hỏi của bạn..."
-                    className="flex-1 px-4 py-3 rounded-full bg-[#F8F9FA] border border-[#3A53A3]/20 focus:border-[#3A53A3] focus:outline-none text-sm"
+                    className="flex-1 px-4 py-3 rounded-full bg-[#F8F9FA] border border-[#3A53A3]/20 focus:border-[#3A53A3] focus:outline-none text-base sm:text-sm"
                   />
                   <motion.button
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                     onClick={handleSendMessage}
                     disabled={!inputValue.trim()}
-                    className="w-12 h-12 bg-gradient-to-br from-[#3A53A3] to-[#2E4389] rounded-full flex items-center justify-center text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-12 h-12 bg-gradient-to-br from-[#3A53A3] to-[#2E4389] rounded-full flex items-center justify-center text-white disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
                   >
                     <Send className="w-5 h-5" />
                   </motion.button>
                 </div>
               )}
-              <p className="text-[10px] text-[#666] text-center mt-2">
+              <p className="text-[10px] text-[#666] text-center mt-2 leading-relaxed">
                 EPath Assistant có thể không phản hồi chính xác 100%. Vui lòng liên hệ trực tiếp để được tư vấn chi tiết.
               </p>
             </div>
@@ -771,13 +831,14 @@ export function Chatbot() {
         )}
       </AnimatePresence>
 
-      {/* Floating label */}
+      {/* Floating label – desktop-only, hidden on small screens where
+          the chat button itself is the primary CTA. */}
       {!isOpen && (
         <motion.div
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 1.5 }}
-          className="fixed bottom-6 right-24 z-50 hidden sm:block"
+          className="hidden md:block fixed bottom-6 right-24 z-[70]"
         >
           <div className="bg-white px-4 py-2 rounded-full shadow-lg border border-[#3A53A3]/20">
             <p className="text-sm text-[#231F20]">Bạn cần tư vấn?</p>

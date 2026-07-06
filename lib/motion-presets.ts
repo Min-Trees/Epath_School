@@ -5,6 +5,7 @@
  * constants from here) to ensure consistent, smooth, non-jittery motion.
  */
 import type { Variants, Transition } from 'framer-motion'
+import { useEffect, useRef } from 'react'
 
 // -----------------------------------------------------------
 // Easing curves
@@ -127,6 +128,60 @@ export const hoverScale = {
   hover: { scale: 1.04, transition: { duration: duration.fast, ease: easeOut } },
   tap: { scale: 0.97, transition: { duration: duration.instant } },
 } satisfies Variants
+
+// -----------------------------------------------------------
+// Performance hooks
+// -----------------------------------------------------------
+
+/**
+ * useInSectionAttribute
+ *
+ * Sets a `data-active` attribute on the ref'd element whenever it's
+ * in the viewport (using IntersectionObserver). CSS can react to that
+ * attribute to play / pause animations, keeping the JS thread idle.
+ *
+ * Why not framer-motion's `whileInView`?
+ *   - Every motion-wrapped element creates its own RAF subscription.
+ *   - With dozens of elements on screen that adds up to noticeable
+ *     paint jank on low-end devices.
+ *   - This hook uses a single shared observer; CSS handles the actual
+ *     transitions.
+ *
+ * Usage:
+ *   const ref = useSectionActive()
+ *   <section ref={ref} className="my-section">...</section>
+ *   // CSS:
+ *   // .my-section[data-active='true'] .thing { animation: ... }
+ */
+export function useSectionActive<T extends HTMLElement = HTMLElement>(
+  options: { rootMargin?: string; threshold?: number | number[] } = {}
+) {
+  const ref = useRef<T>(null)
+
+  useEffect(() => {
+    const el = ref.current
+    if (!el || typeof IntersectionObserver === 'undefined') return
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            el.dataset.active = 'true'
+          } else {
+            el.dataset.active = 'false'
+          }
+        }
+      },
+      {
+        rootMargin: options.rootMargin ?? '0px 0px -10% 0px',
+        threshold: options.threshold ?? 0.1,
+      }
+    )
+    io.observe(el)
+    return () => io.disconnect()
+  }, [options.rootMargin, options.threshold])
+
+  return ref
+}
 
 /** Smooth page enter/exit that does NOT cause language-switch flicker. */
 export const pageVariants: Variants = {

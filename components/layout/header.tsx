@@ -1,46 +1,76 @@
 'use client'
 
-import { useState, useEffect, useTransition } from 'react'
+import { useState, useEffect, useTransition, useRef } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useLocale, useTranslations } from 'next-intl'
-import { Menu, X, ChevronRight } from 'lucide-react'
+import { Menu, ChevronRight } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { LanguageSwitcher } from '@/components/language-switcher'
-import { duration, easeOut } from '@/lib/motion-presets'
 import { motion, AnimatePresence } from 'framer-motion'
+import { duration, easeOut } from '@/lib/motion-presets'
 
+/**
+ * Header – performance-optimised rebuild.
+ *
+ * Why the old version was laggy:
+ *   - Wrapping `<header>` in <motion.header animate={{paddingTop/Bottom}}>
+ *     forced React to re-render the entire header tree on every scroll tick.
+ *   - The logo <Image> switched CSS `height` mid-animation, fighting with
+ *     framer-motion's transform and producing layout shift (CLS).
+ *
+ * New approach (zero React re-renders while scrolling):
+ *   - The header is a plain element; we toggle the `is-scrolled` class via a
+ *     ref + rAF-throttled scroll handler. CSS handles ALL visual changes
+ *     (padding, shadow, colors, logo size) via transitions on transform &
+ *     opacity-friendly properties only.
+ *   - `data-scrolled` attribute on <header> drives every child rule so we
+ *     never need to re-render children.
+ *   - The mobile menu/dropdown still use motion (user-driven, rare) but
+ *     stay outside the scroll hot path.
+ */
 export function Header() {
   const locale = useLocale()
   const t = useTranslations('nav')
-  const [isScrolled, setIsScrolled] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null)
-  // useTransition gives React a way to mark locale updates as
-  // "non-urgent" so that the visible tree (header / footer / main)
-  // stays responsive while the new route is being prepared. This is
-  // what eliminates the brief unresponsive-frame that previously
-  // felt like a "flicker" on slow networks.
+  // useTransition: mark locale updates as non-urgent so the visible tree
+  // (header / footer) stays responsive while the new route is prepared.
   const [, startTransition] = useTransition()
+  const headerRef = useRef<HTMLElement>(null)
 
+  // rAF-throttled scroll handler. Writes to a DOM attribute instead of
+  // setState, so React never re-renders during scroll. Only one DOM
+  // mutation per animation frame, no per-pixel cost.
   useEffect(() => {
-    const handleScroll = () => setIsScrolled(window.scrollY > 20)
-    window.addEventListener('scroll', handleScroll, { passive: true })
-    return () => window.removeEventListener('scroll', handleScroll)
+    let ticking = false
+    const update = () => {
+      const el = headerRef.current
+      if (!el) {
+        ticking = false
+        return
+      }
+      const scrolled = window.scrollY > 20
+      // ToggleAttribute is cheap; CSS reads [data-scrolled].
+      if (scrolled) el.setAttribute('data-scrolled', 'true')
+      else el.removeAttribute('data-scrolled')
+      ticking = false
+    }
+    const onScroll = () => {
+      if (ticking) return
+      ticking = true
+      requestAnimationFrame(update)
+    }
+    update() // sync state on mount
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
   // Close mobile menu on route changes
   useEffect(() => {
-    setIsMobileMenuOpen(false)
-    setActiveDropdown(null)
-  }, [locale])
-
-  // The navigation array is built eagerly; if the locale changes,
-  // the component re-renders with the new strings. We wrap the close
-  // calls in startTransition so they don't block input.
-  useEffect(() => {
     startTransition(() => {
       setIsMobileMenuOpen(false)
+      setActiveDropdown(null)
     })
   }, [locale, startTransition])
 
@@ -80,29 +110,17 @@ export function Header() {
   ]
 
   return (
-    <header
-      className={cn(
-        'fixed top-0 left-0 right-0 z-50 transition-colors duration-200',
-        isScrolled
-          ? 'bg-white/95 backdrop-blur-md shadow-sm py-2'
-          : 'bg-[#3A53A3]/95 backdrop-blur-md py-3'
-      )}
-    >
+    <header ref={headerRef} className="epath-header">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between">
           <Link href={`/${locale}`} className="flex items-center gap-2 group">
-            <div
-              className={cn(
-                'px-2 py-1 rounded-lg transition-colors duration-200',
-                isScrolled ? 'bg-transparent' : 'bg-white/95'
-              )}
-            >
+            <div className="logo-pill">
               <Image
                 src="/epath_logo.png"
                 alt="EPath Education"
                 width={120}
                 height={35}
-                className="h-7 w-auto"
+                className="logo-img"
                 priority
               />
             </div>
@@ -116,17 +134,20 @@ export function Header() {
                 onMouseEnter={() => item.children && setActiveDropdown(item.label)}
                 onMouseLeave={() => item.children && setActiveDropdown(null)}
               >
-                <Link
-                  href={item.href}
-                  className={cn(
-                    'px-4 py-2 text-sm font-medium rounded-lg transition-colors duration-200',
-                    isScrolled
-                      ? 'text-[#231F20] hover:bg-[#3A53A3] hover:text-white'
-                      : 'text-white hover:bg-white/10 hover:text-white'
-                  )}
-                >
+                <Link href={item.href} className="nav-link">
                   {item.label}
                 </Link>
+
+                {/* Invisible bridge so the cursor can travel from the
+                    nav-link down to the dropdown without ever leaving
+                    the hover region. Without this, the dropdown closes
+                    the moment the cursor crosses the 4px gap. */}
+                {item.children && (
+                  <div
+                    className="absolute top-full left-0 right-0 h-2"
+                    aria-hidden
+                  />
+                )}
 
                 <AnimatePresence>
                   {item.children && activeDropdown === item.label && (
@@ -135,7 +156,9 @@ export function Header() {
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -6 }}
                       transition={{ duration: duration.fast, ease: easeOut }}
-                      className="absolute top-full left-0 mt-1 min-w-48 bg-white shadow-xl rounded-xl py-1.5 border border-[#3A53A3]/10"
+                      // z-[60] sits above chat-bubble (z-50) and any
+                      // sticky / positioned siblings.
+                      className="absolute top-full left-0 mt-2 min-w-48 bg-white shadow-xl rounded-xl py-1.5 border border-[#3A53A3]/10 z-[60]"
                       onMouseEnter={() => setActiveDropdown(item.label)}
                       onMouseLeave={() => setActiveDropdown(null)}
                     >
@@ -159,10 +182,7 @@ export function Header() {
 
           <div className="hidden lg:flex items-center gap-3">
             <LanguageSwitcher />
-            <Link
-              href={`/${locale}/admissions#contact`}
-              className="px-5 py-2.5 bg-[#F05A28] text-white text-sm font-medium rounded-full hover:bg-[#E04D1A] transition-colors duration-200 shadow-md hover:shadow-lg hover:-translate-y-0.5"
-            >
+            <Link href={`/${locale}/admissions#contact`} className="header-cta">
               {t('register')}
             </Link>
           </div>
@@ -170,15 +190,16 @@ export function Header() {
           <div className="lg:hidden flex items-center gap-2">
             <LanguageSwitcher />
             <button
-              className={cn(
-                'p-2 rounded-lg transition-colors duration-200 flex items-center gap-2',
-                isScrolled ? 'text-[#3A53A3] hover:bg-[#3A53A3]/10' : 'text-white hover:bg-white/10'
-              )}
+              className="mobile-menu-btn"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               aria-label="Toggle menu"
               type="button"
             >
-              {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+              <span className="menu-icon" data-open={isMobileMenuOpen}>
+                <span className="bar bar-1" />
+                <span className="bar bar-2" />
+                <span className="bar bar-3" />
+              </span>
             </button>
           </div>
         </div>
@@ -199,9 +220,7 @@ export function Header() {
                       href={item.href}
                       className={cn(
                         'block px-4 py-3 font-medium rounded-lg transition-colors duration-200',
-                        isScrolled
-                          ? 'text-[#231F20] hover:bg-[#3A53A3] hover:text-white'
-                          : 'text-white hover:bg-white/10'
+                        'text-[#231F20] hover:bg-[#3A53A3] hover:text-white'
                       )}
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
@@ -215,9 +234,7 @@ export function Header() {
                             href={child.href}
                             className={cn(
                               'flex items-center gap-2 px-4 py-2 text-sm rounded-lg transition-colors duration-200',
-                              isScrolled
-                                ? 'text-[#231F20]/70 hover:bg-[#3A53A3] hover:text-white'
-                                : 'text-white/70 hover:bg-white/10 hover:text-white'
+                              'text-[#231F20]/70 hover:bg-[#3A53A3] hover:text-white'
                             )}
                             onClick={() => setIsMobileMenuOpen(false)}
                           >
